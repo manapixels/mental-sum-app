@@ -17,6 +17,9 @@ export interface UserPreferences {
   }
   sessionLength: number
   difficultyLevel: 'beginner' | 'intermediate' | 'advanced'
+  timeLimit: number // seconds per problem
+  showStrategies: boolean // show strategy hints during sessions
+  enableSound: boolean // enable audio feedback
   numberRanges: {
     addition: { min: number; max: number }
     subtraction: { min: number; max: number }
@@ -107,6 +110,9 @@ export const defaultUserPreferences: UserPreferences = {
   },
   sessionLength: 10,
   difficultyLevel: 'beginner',
+  timeLimit: 30,
+  showStrategies: true,
+  enableSound: true,
   numberRanges: {
     addition: { min: 1, max: 99 },
     subtraction: { min: 1, max: 99 },
