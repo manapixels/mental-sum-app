@@ -1,14 +1,14 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
-import { useUser } from '@/lib/contexts/user-context'
+import React, { useState } from "react";
+import { useUser } from "@/lib/contexts/user-context";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -16,46 +16,47 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { User, Plus, Loader2 } from 'lucide-react'
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { User, Plus, Loader2 } from "lucide-react";
 
 export function UserSelector() {
-  const { currentUser, users, setCurrentUser, createUser, isLoading } = useUser()
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [newUserName, setNewUserName] = useState('')
-  const [isCreating, setIsCreating] = useState(false)
+  const { currentUser, users, setCurrentUser, createUser, isLoading } =
+    useUser();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newUserName, setNewUserName] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
   const handleUserChange = (userId: string) => {
-    if (userId === 'add-new') {
-      setIsDialogOpen(true)
-      return
+    if (userId === "add-new") {
+      setIsDialogOpen(true);
+      return;
     }
-    setCurrentUser(userId)
-  }
+    setCurrentUser(userId);
+  };
 
   const handleCreateUser = async () => {
-    if (!newUserName.trim()) return
+    if (!newUserName.trim()) return;
 
-    setIsCreating(true)
+    setIsCreating(true);
     try {
-      await createUser(newUserName.trim())
-      setNewUserName('')
-      setIsDialogOpen(false)
+      await createUser(newUserName.trim());
+      setNewUserName("");
+      setIsDialogOpen(false);
     } catch (error) {
-      console.error('Failed to create user:', error)
+      console.error("Failed to create user:", error);
     } finally {
-      setIsCreating(false)
+      setIsCreating(false);
     }
-  }
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && newUserName.trim()) {
-      handleCreateUser()
+    if (e.key === "Enter" && newUserName.trim()) {
+      handleCreateUser();
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -63,22 +64,16 @@ export function UserSelector() {
         <Loader2 className="h-4 w-4 animate-spin" />
         Loading...
       </div>
-    )
+    );
   }
 
   return (
     <div className="flex items-center gap-2">
-      <Select
-        value={currentUser?.id || ''}
-        onValueChange={handleUserChange}
-      >
+      <Select value={currentUser?.id || ""} onValueChange={handleUserChange}>
         <SelectTrigger className="w-[160px] sm:w-[200px] h-10">
           <div className="flex items-center gap-2">
             <User className="h-4 w-4" />
-            <SelectValue 
-              placeholder="Select User" 
-              className="text-sm"
-            />
+            <SelectValue placeholder="Select User" className="text-sm" />
           </div>
         </SelectTrigger>
         <SelectContent>
@@ -130,8 +125,8 @@ export function UserSelector() {
               type="button"
               variant="outline"
               onClick={() => {
-                setIsDialogOpen(false)
-                setNewUserName('')
+                setIsDialogOpen(false);
+                setNewUserName("");
               }}
               className="h-12 px-6"
             >
@@ -159,33 +154,33 @@ export function UserSelector() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
 
 // Welcome component for when no users exist
 export function WelcomeScreen() {
-  const { createUser } = useUser()
-  const [name, setName] = useState('')
-  const [isCreating, setIsCreating] = useState(false)
+  const { createUser } = useUser();
+  const [name, setName] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
   const handleCreateFirstUser = async () => {
-    if (!name.trim()) return
+    if (!name.trim()) return;
 
-    setIsCreating(true)
+    setIsCreating(true);
     try {
-      await createUser(name.trim())
+      await createUser(name.trim());
     } catch (error) {
-      console.error('Failed to create user:', error)
+      console.error("Failed to create user:", error);
     } finally {
-      setIsCreating(false)
+      setIsCreating(false);
     }
-  }
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && name.trim()) {
-      handleCreateFirstUser()
+    if (e.key === "Enter" && name.trim()) {
+      handleCreateFirstUser();
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -229,11 +224,11 @@ export function WelcomeScreen() {
                 Creating Profile...
               </>
             ) : (
-              'Get Started'
+              "Get Started"
             )}
           </Button>
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}

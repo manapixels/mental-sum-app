@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { UserProvider } from "@/lib/contexts/user-context";
+import { SessionProvider } from "@/lib/contexts/session-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,7 +16,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Mental Sum - Mental Math Training App",
-  description: "Improve your mental calculation speed and accuracy through targeted practice sessions.",
+  description:
+    "Improve your mental calculation speed and accuracy through targeted practice sessions.",
 };
 
 export default function RootLayout({
@@ -29,7 +31,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <UserProvider>
-          {children}
+          <SessionProvider>{children}</SessionProvider>
         </UserProvider>
       </body>
     </html>

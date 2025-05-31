@@ -1,5 +1,5 @@
-import { Calculator } from 'lucide-react'
-import { UserSelector } from '@/components/user/user-selector'
+import { Calculator } from "lucide-react";
+import { UserSelector } from "@/components/user/user-selector";
 
 export function Header() {
   return (
@@ -10,12 +10,12 @@ export function Header() {
             <Calculator className="h-6 w-6 text-primary" />
             <h1 className="text-xl sm:text-2xl font-bold">Mental Sum</h1>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <UserSelector />
           </div>
         </div>
       </div>
     </header>
-  )
-} 
+  );
+}

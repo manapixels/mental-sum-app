@@ -1,0 +1,54 @@
+"use client";
+
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+interface AnswerInputProps {
+  value: string;
+  onChange: (value: string) => void;
+  onKeyPress: (e: React.KeyboardEvent) => void;
+  disabled?: boolean;
+  placeholder?: string;
+}
+
+export function AnswerInput({
+  value,
+  onChange,
+  onKeyPress,
+  disabled = false,
+  placeholder = "Enter your answer",
+}: AnswerInputProps) {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+
+    // Allow only numbers, negative sign, and decimal point
+    if (inputValue === "" || /^-?\d*\.?\d*$/.test(inputValue)) {
+      onChange(inputValue);
+    }
+  };
+
+  return (
+    <div className="w-full max-w-sm mx-auto space-y-2">
+      <Label
+        htmlFor="answer-input"
+        className="text-center block text-lg font-medium"
+      >
+        Your Answer
+      </Label>
+      <Input
+        id="answer-input"
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        value={value}
+        onChange={handleInputChange}
+        onKeyPress={onKeyPress}
+        placeholder={placeholder}
+        disabled={disabled}
+        className="text-center text-2xl sm:text-3xl h-16 sm:h-20 font-mono border-2 focus:border-primary"
+        autoComplete="off"
+        autoFocus
+      />
+    </div>
+  );
+}

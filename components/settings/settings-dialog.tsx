@@ -1,27 +1,38 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
-import { useUser } from '@/lib/contexts/user-context'
-import { UserPreferences } from '@/lib/types'
-import { Plus, Minus, Calculator, Brain, Clock, Trophy } from 'lucide-react'
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { useUser } from "@/lib/contexts/user-context";
+import { UserPreferences } from "@/lib/types";
+import { Plus, Minus, Calculator, Brain, Clock, Trophy } from "lucide-react";
 
 interface SettingsDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
-  const { currentUser, updateUser } = useUser()
+  const { currentUser, updateUser } = useUser();
   const [preferences, setPreferences] = useState<UserPreferences>(
     currentUser?.preferences || {
-      difficultyLevel: 'beginner',
+      difficultyLevel: "beginner",
       enabledOperations: {
         addition: true,
         subtraction: true,
@@ -38,45 +49,52 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         multiplication: { min: 1, max: 12 },
         division: { min: 1, max: 144 },
       },
-    }
-  )
+    },
+  );
 
   const handleSave = async () => {
-    if (!currentUser) return
+    if (!currentUser) return;
 
-    updateUser(currentUser.id, { preferences })
-    onOpenChange(false)
-  }
+    updateUser(currentUser.id, { preferences });
+    onOpenChange(false);
+  };
 
-  const updateOperations = (operation: keyof typeof preferences.enabledOperations, enabled: boolean) => {
-    setPreferences(prev => ({
+  const updateOperations = (
+    operation: keyof typeof preferences.enabledOperations,
+    enabled: boolean,
+  ) => {
+    setPreferences((prev) => ({
       ...prev,
       enabledOperations: {
         ...prev.enabledOperations,
         [operation]: enabled,
       },
-    }))
-  }
+    }));
+  };
 
-  const adjustSessionLength = (direction: 'up' | 'down') => {
-    setPreferences(prev => ({
+  const adjustSessionLength = (direction: "up" | "down") => {
+    setPreferences((prev) => ({
       ...prev,
-      sessionLength: direction === 'up' 
-        ? Math.min(prev.sessionLength + 5, 50)
-        : Math.max(prev.sessionLength - 5, 5),
-    }))
-  }
+      sessionLength:
+        direction === "up"
+          ? Math.min(prev.sessionLength + 5, 50)
+          : Math.max(prev.sessionLength - 5, 5),
+    }));
+  };
 
-  const adjustTimeLimit = (direction: 'up' | 'down') => {
-    setPreferences(prev => ({
+  const adjustTimeLimit = (direction: "up" | "down") => {
+    setPreferences((prev) => ({
       ...prev,
-      timeLimit: direction === 'up' 
-        ? Math.min(prev.timeLimit + 5, 120)
-        : Math.max(prev.timeLimit - 5, 10),
-    }))
-  }
+      timeLimit:
+        direction === "up"
+          ? Math.min(prev.timeLimit + 5, 120)
+          : Math.max(prev.timeLimit - 5, 10),
+    }));
+  };
 
-  const enabledOperationsCount = Object.values(preferences.enabledOperations).filter(Boolean).length
+  const enabledOperationsCount = Object.values(
+    preferences.enabledOperations,
+  ).filter(Boolean).length;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -97,8 +115,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             </Label>
             <Select
               value={preferences.difficultyLevel}
-              onValueChange={(value: 'beginner' | 'intermediate' | 'advanced') =>
-                setPreferences(prev => ({ ...prev, difficultyLevel: value }))
+              onValueChange={(
+                value: "beginner" | "intermediate" | "advanced",
+              ) =>
+                setPreferences((prev) => ({ ...prev, difficultyLevel: value }))
               }
             >
               <SelectTrigger className="h-12">
@@ -144,57 +164,92 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 {enabledOperationsCount}/4 enabled
               </Badge>
             </Label>
-            
+
             <div className="grid grid-cols-2 gap-3">
               <div className="flex items-center justify-between space-x-2 p-3 rounded-lg border">
                 <div className="flex items-center space-x-2">
                   <Plus className="h-4 w-4 text-green-600" />
-                  <Label htmlFor="addition" className="text-sm font-medium">Addition</Label>
+                  <Label htmlFor="addition" className="text-sm font-medium">
+                    Addition
+                  </Label>
                 </div>
                 <Switch
                   id="addition"
                   checked={preferences.enabledOperations.addition}
-                  onCheckedChange={(checked) => updateOperations('addition', checked)}
-                  disabled={enabledOperationsCount === 1 && preferences.enabledOperations.addition}
+                  onCheckedChange={(checked) =>
+                    updateOperations("addition", checked)
+                  }
+                  disabled={
+                    enabledOperationsCount === 1 &&
+                    preferences.enabledOperations.addition
+                  }
                 />
               </div>
 
               <div className="flex items-center justify-between space-x-2 p-3 rounded-lg border">
                 <div className="flex items-center space-x-2">
                   <Minus className="h-4 w-4 text-red-600" />
-                  <Label htmlFor="subtraction" className="text-sm font-medium">Subtraction</Label>
+                  <Label htmlFor="subtraction" className="text-sm font-medium">
+                    Subtraction
+                  </Label>
                 </div>
                 <Switch
                   id="subtraction"
                   checked={preferences.enabledOperations.subtraction}
-                  onCheckedChange={(checked) => updateOperations('subtraction', checked)}
-                  disabled={enabledOperationsCount === 1 && preferences.enabledOperations.subtraction}
+                  onCheckedChange={(checked) =>
+                    updateOperations("subtraction", checked)
+                  }
+                  disabled={
+                    enabledOperationsCount === 1 &&
+                    preferences.enabledOperations.subtraction
+                  }
                 />
               </div>
 
               <div className="flex items-center justify-between space-x-2 p-3 rounded-lg border">
                 <div className="flex items-center space-x-2">
-                  <span className="h-4 w-4 text-blue-600 font-bold text-xs flex items-center justify-center">×</span>
-                  <Label htmlFor="multiplication" className="text-sm font-medium">Multiplication</Label>
+                  <span className="h-4 w-4 text-blue-600 font-bold text-xs flex items-center justify-center">
+                    ×
+                  </span>
+                  <Label
+                    htmlFor="multiplication"
+                    className="text-sm font-medium"
+                  >
+                    Multiplication
+                  </Label>
                 </div>
                 <Switch
                   id="multiplication"
                   checked={preferences.enabledOperations.multiplication}
-                  onCheckedChange={(checked) => updateOperations('multiplication', checked)}
-                  disabled={enabledOperationsCount === 1 && preferences.enabledOperations.multiplication}
+                  onCheckedChange={(checked) =>
+                    updateOperations("multiplication", checked)
+                  }
+                  disabled={
+                    enabledOperationsCount === 1 &&
+                    preferences.enabledOperations.multiplication
+                  }
                 />
               </div>
 
               <div className="flex items-center justify-between space-x-2 p-3 rounded-lg border">
                 <div className="flex items-center space-x-2">
-                  <span className="h-4 w-4 text-purple-600 font-bold text-xs flex items-center justify-center">÷</span>
-                  <Label htmlFor="division" className="text-sm font-medium">Division</Label>
+                  <span className="h-4 w-4 text-purple-600 font-bold text-xs flex items-center justify-center">
+                    ÷
+                  </span>
+                  <Label htmlFor="division" className="text-sm font-medium">
+                    Division
+                  </Label>
                 </div>
                 <Switch
                   id="division"
                   checked={preferences.enabledOperations.division}
-                  onCheckedChange={(checked) => updateOperations('division', checked)}
-                  disabled={enabledOperationsCount === 1 && preferences.enabledOperations.division}
+                  onCheckedChange={(checked) =>
+                    updateOperations("division", checked)
+                  }
+                  disabled={
+                    enabledOperationsCount === 1 &&
+                    preferences.enabledOperations.division
+                  }
                 />
               </div>
             </div>
@@ -214,10 +269,12 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               <Clock className="h-4 w-4" />
               Session Length
             </Label>
-            
+
             <div className="flex items-center justify-between p-3 rounded-lg border">
               <div className="flex flex-col">
-                <span className="text-sm font-medium">Problems per session</span>
+                <span className="text-sm font-medium">
+                  Problems per session
+                </span>
                 <span className="text-xs text-muted-foreground">
                   Recommended: 10-20 problems
                 </span>
@@ -227,7 +284,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   variant="outline"
                   size="icon"
                   className="h-8 w-8"
-                  onClick={() => adjustSessionLength('down')}
+                  onClick={() => adjustSessionLength("down")}
                   disabled={preferences.sessionLength <= 5}
                 >
                   <Minus className="h-3 w-3" />
@@ -239,7 +296,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   variant="outline"
                   size="icon"
                   className="h-8 w-8"
-                  onClick={() => adjustSessionLength('up')}
+                  onClick={() => adjustSessionLength("up")}
                   disabled={preferences.sessionLength >= 50}
                 >
                   <Plus className="h-3 w-3" />
@@ -262,7 +319,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   variant="outline"
                   size="icon"
                   className="h-8 w-8"
-                  onClick={() => adjustTimeLimit('down')}
+                  onClick={() => adjustTimeLimit("down")}
                   disabled={preferences.timeLimit <= 10}
                 >
                   <Minus className="h-3 w-3" />
@@ -274,7 +331,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   variant="outline"
                   size="icon"
                   className="h-8 w-8"
-                  onClick={() => adjustTimeLimit('up')}
+                  onClick={() => adjustTimeLimit("up")}
                   disabled={preferences.timeLimit >= 120}
                 >
                   <Plus className="h-3 w-3" />
@@ -288,11 +345,13 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           {/* Training Features */}
           <div className="space-y-3">
             <Label className="text-base font-medium">Training Features</Label>
-            
+
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 rounded-lg border">
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium">Show Strategy Hints</span>
+                  <span className="text-sm font-medium">
+                    Show Strategy Hints
+                  </span>
                   <span className="text-xs text-muted-foreground">
                     Learn mental calculation strategies
                   </span>
@@ -300,7 +359,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 <Switch
                   checked={preferences.showStrategies}
                   onCheckedChange={(checked) =>
-                    setPreferences(prev => ({ ...prev, showStrategies: checked }))
+                    setPreferences((prev) => ({
+                      ...prev,
+                      showStrategies: checked,
+                    }))
                   }
                 />
               </div>
@@ -315,7 +377,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 <Switch
                   checked={preferences.enableSound}
                   onCheckedChange={(checked) =>
-                    setPreferences(prev => ({ ...prev, enableSound: checked }))
+                    setPreferences((prev) => ({
+                      ...prev,
+                      enableSound: checked,
+                    }))
                   }
                 />
               </div>
@@ -332,14 +397,11 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           >
             Cancel
           </Button>
-          <Button
-            onClick={handleSave}
-            className="flex-1 h-12"
-          >
+          <Button onClick={handleSave} className="flex-1 h-12">
             Save Settings
           </Button>
         </div>
       </DialogContent>
     </Dialog>
-  )
-} 
+  );
+}
