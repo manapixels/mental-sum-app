@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSession } from "@/lib/contexts/session-context";
 import { useUser } from "@/lib/contexts/user-context";
-import { ArrowLeft, Play } from "lucide-react";
+import { ArrowLeft, Home, Play } from "lucide-react";
 
 type FeedbackType = "correct" | "incorrect" | "timeout" | null;
 
@@ -225,28 +225,27 @@ export function SessionInterface() {
   return (
     <MainLayout>
       <div className="max-w-2xl mx-auto space-y-2 sm:space-y-4 px-4">
-        {/* Compact Header with back button and progress */}
-        <div className="flex items-center justify-between py-2">
+        {/* Compact Header with back button, timer and progress */}
+        <div className="grid grid-cols-5 items-center gap-2 py-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.push("/")}
-            className="text-muted-foreground hover:text-foreground text-sm"
+            className="text-muted-foreground hover:text-foreground text-sm col-span-1"
           >
             <ArrowLeft className="mr-1 h-3 w-3" />
-            Home
+            <Home className="mr-1 h-3 w-3" />
           </Button>
-
-          <SessionProgress
-            current={progress.completed}
-            total={progress.total}
-            percentage={progress.percentage}
-          />
-        </div>
-
-        {/* Compact Timer */}
-        <div className="flex justify-center py-1">
-          <SessionTimer />
+          <div className="col-span-2">
+            <SessionTimer />
+          </div>
+          <div className="col-span-2">
+            <SessionProgress
+              current={progress.completed}
+              total={progress.total}
+              percentage={progress.percentage}
+            />
+          </div>
         </div>
 
         {/* Problem display */}

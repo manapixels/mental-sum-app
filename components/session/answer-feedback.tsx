@@ -119,7 +119,7 @@ export function AnswerFeedback({
                     damping: 10,
                     stiffness: 200,
                   }}
-                  className={`mx-auto mb-4 p-3 rounded-full ${config.bgColor} border-2 border-current`}
+                  className={`mx-auto mb-4 p-3 rounded-full ${config.bgColor} border-2 border-current flex items-center justify-center`}
                 >
                   <motion.div
                     animate={
@@ -135,6 +135,7 @@ export function AnswerFeedback({
                       type: "tween",
                       ease: "easeInOut",
                     }}
+                    className="flex items-center justify-center"
                   >
                     <IconComponent className={`h-8 w-8 ${config.color}`} />
                   </motion.div>

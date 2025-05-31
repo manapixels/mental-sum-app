@@ -48,7 +48,7 @@ export function SessionTimer() {
   return (
     <motion.div animate={getAnimation()}>
       <Card
-        className={`${getTimerBgColor(timeRemaining)} transition-colors duration-300`}
+        className={`${getTimerBgColor(timeRemaining)} transition-colors duration-300 py-0`}
       >
         <CardContent className="p-3 sm:p-4">
           <div className="flex items-center justify-center space-x-2">

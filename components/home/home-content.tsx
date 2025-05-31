@@ -71,56 +71,51 @@ export function HomeContent() {
       <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
         {/* Welcome Section */}
         <div className="text-center space-y-4">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+          <h2 className="text-xl sm:text-4xl font-bold tracking-tight">
             {currentUser
               ? `Welcome back, ${currentUser.name}!`
               : "Train Your Mental Math Skills"}
           </h2>
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-            Improve your calculation speed and accuracy through targeted
-            practice sessions. Master mental strategies for addition,
-            subtraction, multiplication, and division.
-          </p>
         </div>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-4">
-          <Card>
+          <Card className="py-2">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col items-start gap-2">
                 <Brain className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
                 <div className="text-xl sm:text-2xl font-bold">
                   {stats.totalProblems}
                 </div>
-                <div className="text-xs sm:text-sm text-muted-foreground">
+                <div className="text-md sm:text-sm text-muted-foreground">
                   Problems Solved
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="py-2">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col items-start gap-2">
                 <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />
                 <div className="text-xl sm:text-2xl font-bold">
                   {accuracyRate}%
                 </div>
-                <div className="text-xs sm:text-sm text-muted-foreground">
+                <div className="text-md sm:text-sm text-muted-foreground">
                   Accuracy Rate
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="py-2">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col items-start gap-2">
                 <Play className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500" />
                 <div className="text-xl sm:text-2xl font-bold">
                   {stats.totalSessions}
                 </div>
-                <div className="text-xs sm:text-sm text-muted-foreground">
+                <div className="text-md sm:text-sm text-muted-foreground">
                   Sessions Completed
                 </div>
               </div>
@@ -129,18 +124,19 @@ export function HomeContent() {
         </div>
 
         {/* Main Action */}
-        <Card className="p-4 sm:p-8">
+        <Card className="p-4 sm:p-8 gap-0">
           <CardHeader className="text-center pb-4 sm:pb-6 px-0">
             <CardTitle className="text-xl sm:text-2xl">
               Ready to Practice?
             </CardTitle>
             <CardAction>
               <Button
-                size="lg"
+                size="sm"
                 variant="outline"
-                className="h-12 sm:h-auto px-6 sm:px-8 text-base"
+                className="h-8 sm:h-auto px-6 sm:px-8 text-base"
+                onClick={() => setShowSettings(true)}
               >
-                <Settings className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </CardAction>
           </CardHeader>
@@ -188,11 +184,11 @@ export function HomeContent() {
         </Card>
 
         {/* Features Preview */}
-        <div className="grid grid-cols-3 gap-4 sm:gap-6">
-          <Card>
+        <div className="grid grid-cols-2 gap-4 sm:gap-6">
+          <Card className="gap-0">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Brain className="h-4 w-4 sm:h-5 sm:w-5" />
+                <Brain className="h-8 w-8 sm:h-5 sm:w-5" />
                 Smart Learning
               </CardTitle>
             </CardHeader>
@@ -204,10 +200,10 @@ export function HomeContent() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="gap-0">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5" />
+                <BarChart3 className="h-8 w-8 sm:h-5 sm:w-5" />
                 Progress Tracking
               </CardTitle>
             </CardHeader>
@@ -219,7 +215,6 @@ export function HomeContent() {
             </CardContent>
           </Card>
         </div>
-
         {/* Settings Dialog */}
         <SettingsDialog open={showSettings} onOpenChange={setShowSettings} />
       </div>

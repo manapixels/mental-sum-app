@@ -32,6 +32,21 @@ export function SessionResults({
       : 0;
   const averageTime = Math.round(session.averageTime * 10) / 10;
 
+  // Helper function to format time in minutes and seconds
+  const formatSessionTime = (startTime: Date, endTime: Date) => {
+    const totalSeconds = Math.round(
+      (endTime.getTime() - startTime.getTime()) / 1000,
+    );
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    if (minutes > 0) {
+      return `${minutes}m ${seconds}s`;
+    } else {
+      return `${seconds}s`;
+    }
+  };
+
   const getPerformanceColor = (accuracy: number) => {
     if (accuracy >= 90) return "text-green-600";
     if (accuracy >= 70) return "text-yellow-600";
@@ -52,7 +67,7 @@ export function SessionResults({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <Card>
+      <Card className="border-0 shadow-none">
         <CardHeader className="text-center pb-6">
           <div className="mx-auto mb-4">
             <Trophy className="h-12 w-12 text-yellow-500" />
@@ -60,49 +75,61 @@ export function SessionResults({
           <CardTitle className="text-2xl sm:text-3xl mb-2">
             Session Complete!
           </CardTitle>
-          <Badge
-            variant={performanceBadge.variant}
-            className="text-lg px-4 py-1"
-          >
-            {performanceBadge.text}
-          </Badge>
+          <div className="flex justify-center">
+            <Badge
+              variant={performanceBadge.variant}
+              className="text-lg px-4 py-1"
+            >
+              {performanceBadge.text}
+            </Badge>
+          </div>
         </CardHeader>
       </Card>
 
       {/* Performance Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <Card>
-          <CardContent className="p-6 text-center">
-            <Target className="h-8 w-8 mx-auto mb-2 text-blue-500" />
+          <CardContent className="p-4 sm:p-6 text-center">
+            <Target className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-blue-500" />
             <div
-              className={`text-2xl font-bold ${getPerformanceColor(accuracyRate)}`}
+              className={`text-lg sm:text-2xl font-bold ${getPerformanceColor(accuracyRate)}`}
             >
               {accuracyRate}%
             </div>
-            <div className="text-sm text-muted-foreground">Accuracy</div>
-            <div className="text-xs text-muted-foreground mt-1">
+            <div className="text-xs sm:text-sm text-muted-foreground">
+              Accuracy
+            </div>
+            <div className="text-xs text-muted-foreground mt-1 hidden sm:block">
               {correctAnswers}/{completedProblems.length} correct
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6 text-center">
-            <Clock className="h-8 w-8 mx-auto mb-2 text-green-500" />
-            <div className="text-2xl font-bold">{averageTime}s</div>
-            <div className="text-sm text-muted-foreground">Avg Time</div>
-            <div className="text-xs text-muted-foreground mt-1">
+          <CardContent className="p-4 sm:p-6 text-center">
+            <Clock className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-green-500" />
+            <div className="text-lg sm:text-2xl font-bold">{averageTime}s</div>
+            <div className="text-xs sm:text-sm text-muted-foreground">
+              Avg Time
+            </div>
+            <div className="text-xs text-muted-foreground mt-1 hidden sm:block">
               per problem
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6 text-center">
-            <TrendingUp className="h-8 w-8 mx-auto mb-2 text-purple-500" />
-            <div className="text-2xl font-bold">{completedProblems.length}</div>
-            <div className="text-sm text-muted-foreground">Problems</div>
-            <div className="text-xs text-muted-foreground mt-1">completed</div>
+          <CardContent className="p-4 sm:p-6 text-center">
+            <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-purple-500" />
+            <div className="text-lg sm:text-2xl font-bold">
+              {completedProblems.length}
+            </div>
+            <div className="text-xs sm:text-sm text-muted-foreground">
+              Problems
+            </div>
+            <div className="text-xs text-muted-foreground mt-1 hidden sm:block">
+              completed
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -166,27 +193,10 @@ export function SessionResults({
         <CardContent className="space-y-3">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="text-muted-foreground">Started:</span>
-              <div className="font-medium">
-                {session.startTime.toLocaleTimeString()}
-              </div>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Completed:</span>
-              <div className="font-medium">
-                {session.endTime?.toLocaleTimeString() || "In progress"}
-              </div>
-            </div>
-            <div>
               <span className="text-muted-foreground">Total Time:</span>
               <div className="font-medium">
                 {session.endTime
-                  ? Math.round(
-                      (session.endTime.getTime() -
-                        session.startTime.getTime()) /
-                        1000 /
-                        60,
-                    ) + "m"
+                  ? formatSessionTime(session.startTime, session.endTime)
                   : "N/A"}
               </div>
             </div>
@@ -211,7 +221,11 @@ export function SessionResults({
 
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-3">
-        <Button onClick={onNewSession} size="lg" className="flex-1 h-12">
+        <Button
+          onClick={onNewSession}
+          size="lg"
+          className="h-12 sm:h-auto px-6 sm:px-8 text-base"
+        >
           <RotateCcw className="mr-2 h-4 w-4" />
           New Session
         </Button>
@@ -219,7 +233,7 @@ export function SessionResults({
           variant="outline"
           onClick={onBackToHome}
           size="lg"
-          className="flex-1 h-12"
+          className="h-12 sm:h-auto px-6 sm:px-8 text-base"
         >
           <Home className="mr-2 h-4 w-4" />
           Back to Home

@@ -152,7 +152,7 @@ export function SessionCelebration({
                 damping: 10,
                 stiffness: 200,
               }}
-              className="mx-auto mb-6 p-4 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full shadow-lg"
+              className="mx-auto mb-6 p-4 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full shadow-lg flex items-center justify-center"
             >
               <motion.div
                 animate={{
@@ -164,6 +164,7 @@ export function SessionCelebration({
                   repeat: 2,
                   type: "tween",
                 }}
+                className="flex items-center justify-center"
               >
                 <PerformanceIcon className="h-12 w-12 text-white" />
               </motion.div>

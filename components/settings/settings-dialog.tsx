@@ -31,25 +31,32 @@ interface SettingsDialogProps {
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { currentUser, updateUser } = useUser();
   const [preferences, setPreferences] = useState<UserPreferences>(
-    currentUser?.preferences || {
-      difficultyLevel: "beginner",
-      enabledOperations: {
-        addition: true,
-        subtraction: true,
-        multiplication: true,
-        division: true,
-      },
-      sessionLength: 10,
-      timeLimit: 30,
-      showStrategies: true,
-      enableSound: true,
-      numberRanges: {
-        addition: { min: 1, max: 99 },
-        subtraction: { min: 1, max: 99 },
-        multiplication: { min: 1, max: 12 },
-        division: { min: 1, max: 144 },
-      },
-    },
+    currentUser?.preferences
+      ? {
+          ...currentUser.preferences,
+          // Ensure numeric values are properly converted
+          timeLimit: Number(currentUser.preferences.timeLimit) || 30,
+          sessionLength: Number(currentUser.preferences.sessionLength) || 10,
+        }
+      : {
+          difficultyLevel: "beginner",
+          enabledOperations: {
+            addition: true,
+            subtraction: true,
+            multiplication: true,
+            division: true,
+          },
+          sessionLength: 10,
+          timeLimit: 30,
+          showStrategies: true,
+          enableSound: true,
+          numberRanges: {
+            addition: { min: 1, max: 99 },
+            subtraction: { min: 1, max: 99 },
+            multiplication: { min: 1, max: 12 },
+            division: { min: 1, max: 144 },
+          },
+        },
   );
 
   const handleSave = async () => {
@@ -73,23 +80,29 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   };
 
   const adjustSessionLength = (direction: "up" | "down") => {
-    setPreferences((prev) => ({
-      ...prev,
-      sessionLength:
-        direction === "up"
-          ? Math.min(prev.sessionLength + 5, 50)
-          : Math.max(prev.sessionLength - 5, 5),
-    }));
+    setPreferences((prev) => {
+      const currentSessionLength = Number(prev.sessionLength) || 10;
+      return {
+        ...prev,
+        sessionLength:
+          direction === "up"
+            ? Math.min(currentSessionLength + 5, 50)
+            : Math.max(currentSessionLength - 5, 5),
+      };
+    });
   };
 
   const adjustTimeLimit = (direction: "up" | "down") => {
-    setPreferences((prev) => ({
-      ...prev,
-      timeLimit:
-        direction === "up"
-          ? Math.min(prev.timeLimit + 5, 120)
-          : Math.max(prev.timeLimit - 5, 10),
-    }));
+    setPreferences((prev) => {
+      const currentTimeLimit = Number(prev.timeLimit) || 30;
+      return {
+        ...prev,
+        timeLimit:
+          direction === "up"
+            ? Math.min(currentTimeLimit + 5, 120)
+            : Math.max(currentTimeLimit - 5, 10),
+      };
+    });
   };
 
   const enabledOperationsCount = Object.values(
@@ -121,7 +134,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 setPreferences((prev) => ({ ...prev, difficultyLevel: value }))
               }
             >
-              <SelectTrigger className="h-12">
+              <SelectTrigger className="h-24 w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -165,7 +178,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               </Badge>
             </Label>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between space-x-2 p-3 rounded-lg border">
                 <div className="flex items-center space-x-2">
                   <Plus className="h-4 w-4 text-green-600" />
