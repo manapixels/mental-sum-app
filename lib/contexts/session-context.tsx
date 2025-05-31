@@ -19,6 +19,7 @@ interface SessionContextType {
   timeRemaining: number;
   isActive: boolean;
   isPaused: boolean;
+  hasTimedOut: boolean;
   startSession: () => void;
   submitAnswer: (answer: number) => void;
   pauseSession: () => void;
@@ -30,6 +31,7 @@ interface SessionContextType {
     total: number;
     percentage: number;
   };
+  clearTimeout: () => void;
 }
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -41,6 +43,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [timeRemaining, setTimeRemaining] = useState(30);
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [hasTimedOut, setHasTimedOut] = useState(false);
 
   // Timer effect
   useEffect(() => {
@@ -69,6 +72,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const handleTimeUp = useCallback(() => {
     if (!currentProblem) return;
 
+    // Set timeout flag for UI feedback
+    setHasTimedOut(true);
+
     // Mark as incorrect due to timeout
     const timeLimit = currentUser?.preferences.timeLimit || 30;
     const updatedProblem: Problem = {
@@ -80,7 +86,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     };
 
     updateProblemInSession(updatedProblem);
-    nextProblem();
+    // Don't auto-advance here - let the UI handle it
   }, [currentProblem, currentUser]);
 
   const startSession = useCallback(() => {
@@ -166,10 +172,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
       updateProblemInSession(updatedProblem);
 
-      // Brief pause to show feedback before moving to next problem
-      setTimeout(() => {
-        nextProblem();
-      }, 1500);
+      // Don't automatically advance - let the feedback component handle timing
     },
     [
       currentProblem,
@@ -182,6 +185,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const nextProblem = useCallback(() => {
     if (!currentSession) return;
+
+    // Clear timeout flag for next problem
+    setHasTimedOut(false);
 
     if (problemIndex < currentSession.problems.length - 1) {
       // Move to next problem
@@ -298,6 +304,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     return { completed, total, percentage };
   }, [currentSession, problemIndex, currentProblem]);
 
+  const clearTimeout = useCallback(() => {
+    setHasTimedOut(false);
+  }, []);
+
   const value: SessionContextType = {
     currentSession,
     currentProblem,
@@ -305,6 +315,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     timeRemaining,
     isActive,
     isPaused,
+    hasTimedOut,
     startSession,
     submitAnswer,
     pauseSession,
@@ -312,6 +323,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     endSession,
     nextProblem,
     getSessionProgress,
+    clearTimeout,
   };
 
   return (
