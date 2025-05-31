@@ -11,12 +11,12 @@ import { SessionControls } from "./session-controls";
 import { SessionResults } from "./session-results";
 import { AnswerFeedback } from "./answer-feedback";
 import { SessionCelebration } from "./session-celebration";
+import { NumberKeypad } from "./number-keypad";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSession } from "@/lib/contexts/session-context";
 import { useUser } from "@/lib/contexts/user-context";
 import { ArrowLeft, Play } from "lucide-react";
-import { motion } from "framer-motion";
 
 type FeedbackType = "correct" | "incorrect" | "timeout" | null;
 
@@ -47,7 +47,13 @@ export function SessionInterface() {
 
   // Watch for timeout
   useEffect(() => {
-    if (hasTimedOut && currentProblem) {
+    if (
+      hasTimedOut &&
+      currentProblem &&
+      isActive &&
+      currentSession &&
+      !currentSession.completed
+    ) {
       setFeedbackType("timeout");
       setFeedbackData({
         correctAnswer: currentProblem.correctAnswer,
@@ -55,7 +61,7 @@ export function SessionInterface() {
       });
       clearTimeout(); // Clear the timeout flag
     }
-  }, [hasTimedOut, currentProblem, clearTimeout]);
+  }, [hasTimedOut, currentProblem, isActive, currentSession, clearTimeout]);
 
   // Redirect if no user
   useEffect(() => {
@@ -100,24 +106,6 @@ export function SessionInterface() {
     }
   };
 
-  // Debug feedback state changes
-  useEffect(() => {
-    console.log("Feedback state changed:", { feedbackType, feedbackData });
-  }, [feedbackType, feedbackData]);
-
-  // Debug session state
-  useEffect(() => {
-    console.log("Session state debug:", {
-      hasCurrentSession: !!currentSession,
-      isSessionCompleted: currentSession?.completed,
-      isActive,
-      showCelebration,
-      showResults,
-      problemsLength: currentSession?.problems?.length,
-      totalCorrect: currentSession?.totalCorrect,
-    });
-  }, [currentSession, isActive, showCelebration, showResults]);
-
   const handleFeedbackComplete = () => {
     setFeedbackType(null);
     setFeedbackData({});
@@ -133,6 +121,27 @@ export function SessionInterface() {
     setShowResults(true);
   };
 
+  // Number keypad handlers
+  const handleNumberPress = (number: string) => {
+    if (feedbackType === null) {
+      // Only allow input when not showing feedback
+      setUserAnswer((prev) => prev + number);
+    }
+  };
+
+  const handleBackspace = () => {
+    if (feedbackType === null) {
+      setUserAnswer((prev) => prev.slice(0, -1));
+    }
+  };
+
+  const handleKeypadSubmit = () => {
+    if (userAnswer.trim() && feedbackType === null) {
+      handleSubmitAnswer();
+    }
+  };
+
+  // Desktop keyboard handler
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && userAnswer.trim()) {
       handleSubmitAnswer();
@@ -140,6 +149,9 @@ export function SessionInterface() {
   };
 
   const progress = getSessionProgress();
+
+  // Check if we're on mobile
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
   // Loading state
   if (!currentUser) {
@@ -212,16 +224,16 @@ export function SessionInterface() {
   // Active session state
   return (
     <MainLayout>
-      <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6">
-        {/* Header with back button and progress */}
-        <div className="flex items-center justify-between">
+      <div className="max-w-2xl mx-auto space-y-2 sm:space-y-4 px-4">
+        {/* Compact Header with back button and progress */}
+        <div className="flex items-center justify-between py-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.push("/")}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground text-sm"
           >
-            <ArrowLeft className="mr-1 h-4 w-4" />
+            <ArrowLeft className="mr-1 h-3 w-3" />
             Home
           </Button>
 
@@ -232,13 +244,13 @@ export function SessionInterface() {
           />
         </div>
 
-        {/* Timer */}
-        <div className="flex justify-center">
+        {/* Compact Timer */}
+        <div className="flex justify-center py-1">
           <SessionTimer />
         </div>
 
         {/* Problem display */}
-        <div className="flex justify-center">
+        <div className="flex justify-center py-2">
           {currentProblem && (
             <ProblemDisplay
               problem={currentProblem}
@@ -247,22 +259,41 @@ export function SessionInterface() {
           )}
         </div>
 
-        {/* Answer input */}
-        <div className="space-y-4">
-          <AnswerInput
-            value={userAnswer}
-            onChange={setUserAnswer}
-            onKeyPress={handleKeyPress}
-            disabled={isPaused || feedbackType !== null}
-            placeholder="Enter your answer"
-          />
+        {/* Answer Input Section */}
+        {isMobile ? (
+          // Mobile: Show read-only display + keypad
+          <>
+            <div className="flex justify-center pb-2">
+              <div className="text-center">
+                <div className="text-sm text-muted-foreground mb-1">
+                  Your Answer
+                </div>
+                <div className="w-32 px-4 py-2 text-xl font-bold text-center bg-white border-2 border-gray-200 rounded-lg min-h-[44px] flex items-center justify-center">
+                  {userAnswer || "—"}
+                </div>
+              </div>
+            </div>
 
-          <div className="flex justify-center">
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            >
+            <div className="flex justify-center">
+              <NumberKeypad
+                onNumberPress={handleNumberPress}
+                onBackspace={handleBackspace}
+                onSubmit={handleKeypadSubmit}
+                disabled={isPaused || feedbackType !== null}
+              />
+            </div>
+          </>
+        ) : (
+          // Desktop: Traditional input + button
+          <div className="space-y-4">
+            <AnswerInput
+              value={userAnswer}
+              onChange={setUserAnswer}
+              onKeyPress={handleKeyPress}
+              disabled={isPaused || feedbackType !== null}
+              placeholder="Enter your answer"
+            />
+            <div className="flex justify-center">
               <Button
                 onClick={handleSubmitAnswer}
                 disabled={
@@ -273,12 +304,12 @@ export function SessionInterface() {
               >
                 Submit Answer
               </Button>
-            </motion.div>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Session controls */}
-        <div className="pt-4">
+        {/* Compact Session controls */}
+        <div className="pt-2">
           <SessionControls />
         </div>
       </div>

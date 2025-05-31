@@ -117,6 +117,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       setTimeRemaining(currentUser.preferences.timeLimit || 30);
       setIsActive(true);
       setIsPaused(false);
+      setHasTimedOut(false);
 
       // Save session to storage
       StorageManager.createSession({
@@ -290,6 +291,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     // Stop the session
     setIsActive(false);
     setIsPaused(false);
+    setHasTimedOut(false);
   }, [currentSession, currentUser, updateUser]);
 
   const getSessionProgress = useCallback(() => {

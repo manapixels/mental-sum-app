@@ -5,8 +5,8 @@ import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardAction,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -84,18 +84,16 @@ export function HomeContent() {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <Card>
             <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col items-start gap-2">
                 <Brain className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
-                <div>
-                  <div className="text-xl sm:text-2xl font-bold">
-                    {stats.totalProblems}
-                  </div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">
-                    Problems Solved
-                  </div>
+                <div className="text-xl sm:text-2xl font-bold">
+                  {stats.totalProblems}
+                </div>
+                <div className="text-xs sm:text-sm text-muted-foreground">
+                  Problems Solved
                 </div>
               </div>
             </CardContent>
@@ -103,15 +101,13 @@ export function HomeContent() {
 
           <Card>
             <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col items-start gap-2">
                 <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />
-                <div>
-                  <div className="text-xl sm:text-2xl font-bold">
-                    {accuracyRate}%
-                  </div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">
-                    Accuracy Rate
-                  </div>
+                <div className="text-xl sm:text-2xl font-bold">
+                  {accuracyRate}%
+                </div>
+                <div className="text-xs sm:text-sm text-muted-foreground">
+                  Accuracy Rate
                 </div>
               </div>
             </CardContent>
@@ -119,15 +115,13 @@ export function HomeContent() {
 
           <Card>
             <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col items-start gap-2">
                 <Play className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500" />
-                <div>
-                  <div className="text-xl sm:text-2xl font-bold">
-                    {stats.totalSessions}
-                  </div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">
-                    Sessions Completed
-                  </div>
+                <div className="text-xl sm:text-2xl font-bold">
+                  {stats.totalSessions}
+                </div>
+                <div className="text-xs sm:text-sm text-muted-foreground">
+                  Sessions Completed
                 </div>
               </div>
             </CardContent>
@@ -140,11 +134,15 @@ export function HomeContent() {
             <CardTitle className="text-xl sm:text-2xl">
               Ready to Practice?
             </CardTitle>
-            <CardDescription className="text-sm sm:text-base">
-              Start a new session with{" "}
-              {currentUser?.preferences?.sessionLength || 10} problems.
-              Customize your practice settings anytime.
-            </CardDescription>
+            <CardAction>
+              <Button
+                size="lg"
+                variant="outline"
+                className="h-12 sm:h-auto px-6 sm:px-8 text-base"
+              >
+                <Settings className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+            </CardAction>
           </CardHeader>
           <CardContent className="text-center space-y-4 px-0">
             <div className="flex flex-wrap justify-center gap-2">
@@ -185,21 +183,12 @@ export function HomeContent() {
                 <Play className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                 Start Session
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="h-12 sm:h-auto px-6 sm:px-8 text-base"
-                onClick={() => setShowSettings(true)}
-              >
-                <Settings className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                Settings
-              </Button>
             </div>
           </CardContent>
         </Card>
 
         {/* Features Preview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid grid-cols-3 gap-4 sm:gap-6">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
