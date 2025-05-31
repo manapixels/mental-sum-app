@@ -36,7 +36,21 @@ A mental math training application designed to help users improve their calculat
 - **Dynamic Problem Generation**: Only enabled operations appear in sessions
 - **Settings Persistence**: User preferences saved in localStorage
 
-### 3. Mental Calculation Strategies & Problem Categories
+### 3. Mobile-First Design 📱
+
+- **Primary Platform**: Optimized for mobile phone usage
+- **Touch-Friendly Interface**: Large buttons and touch targets
+- **Portrait Orientation**: Designed primarily for vertical phone screens
+- **Responsive Layout**: Adapts gracefully to tablets and desktop
+- **Fast Loading**: Optimized for mobile networks
+- **Offline Capability**: Works without internet connection
+- **Mobile UX Patterns**: 
+  - Thumb-friendly navigation
+  - Minimal scrolling during sessions
+  - Clear visual hierarchy on small screens
+  - Accessible font sizes (minimum 16px)
+
+### 4. Mental Calculation Strategies & Problem Categories
 
 #### Addition Strategies
 
@@ -65,7 +79,7 @@ A mental math training application designed to help users improve their calculat
 - **Multiplication Inverse**: `91 ÷ 7` → "What × 7 = 91?" → `13`
 - **Estimation & Adjustment**: `156 ÷ 13` → Try `12`, adjust → `12`
 
-### 4. Training Sessions
+### 5. Training Sessions
 
 - **Default Length**: 10 questions per session
 - **Start Mechanism**: Dedicated "Start" button
@@ -78,7 +92,7 @@ A mental math training application designed to help users improve their calculat
   - Overall session time
   - Performance insights
 
-### 5. Educational Feedback System
+### 6. Educational Feedback System
 
 - **Wrong Answer Teaching**: When user answers incorrectly, show:
   - The correct answer
