@@ -67,6 +67,39 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     };
   }, [isActive, isPaused, timeRemaining]);
 
+  // Automatic pause/resume based on window focus
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleVisibilityChange = () => {
+      if (isActive && !hasTimedOut) {
+        setIsPaused(document.hidden);
+      }
+    };
+
+    const handleWindowBlur = () => {
+      if (isActive && !hasTimedOut) {
+        setIsPaused(true);
+      }
+    };
+
+    const handleWindowFocus = () => {
+      if (isActive && !hasTimedOut) {
+        setIsPaused(false);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("blur", handleWindowBlur);
+    window.addEventListener("focus", handleWindowFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("blur", handleWindowBlur);
+      window.removeEventListener("focus", handleWindowFocus);
+    };
+  }, [isActive, hasTimedOut]);
+
   const currentProblem = currentSession?.problems[problemIndex] || null;
 
   const handleTimeUp = useCallback(() => {
@@ -91,6 +124,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const startSession = useCallback(() => {
     if (!currentUser) return;
+
+    // Immediately clear any existing session to prevent UI glitches
+    setCurrentSession(null);
+    setIsActive(false);
+    setIsPaused(false);
+    setHasTimedOut(false);
 
     try {
       // Generate problems based on user preferences

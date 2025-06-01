@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mental Sum - Mental Math Training App",
+  title: "Sommy - Mental Math Training App",
   description:
     "Improve your mental calculation speed and accuracy through targeted practice sessions.",
 };

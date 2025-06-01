@@ -16,10 +16,10 @@ export function SessionProgress({
   return (
     <div className="text-center space-y-2 min-w-[120px]">
       <div className="space-y-1">
+        <Progress value={percentage} className="w-full h-2" />
         <div className="text-lg font-bold">
           {current} / {total}
         </div>
-        <Progress value={percentage} className="w-full h-2" />
       </div>
     </div>
   );

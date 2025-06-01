@@ -111,11 +111,6 @@ export function NumberKeypad({
           <Check className="h-5 w-5" />
         </KeypadButton>
       </div>
-
-      {/* Helper text */}
-      <div className="text-center mt-2 text-xs text-gray-500">
-        Tap numbers to enter your answer
-      </div>
     </div>
   );
 }

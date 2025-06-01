@@ -3,16 +3,37 @@
 import { Problem } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Plus, Minus, X, Divide } from "lucide-react";
+import { AnswerInput } from "./answer-input";
+import { NumberKeypad } from "./number-keypad";
 
 interface ProblemDisplayProps {
   problem: Problem;
   showStrategy?: boolean;
+  userAnswer: string;
+  onAnswerChange: (value: string) => void;
+  onSubmit: () => void;
+  onKeyPress: (e: React.KeyboardEvent) => void;
+  onNumberPress: (number: string) => void;
+  onBackspace: () => void;
+  onKeypadSubmit: () => void;
+  disabled?: boolean;
+  feedbackType: "correct" | "incorrect" | "timeout" | null;
 }
 
 export function ProblemDisplay({
   problem,
   showStrategy = false,
+  userAnswer,
+  onAnswerChange,
+  onSubmit,
+  onKeyPress,
+  onNumberPress,
+  onBackspace,
+  onKeypadSubmit,
+  disabled = false,
+  feedbackType,
 }: ProblemDisplayProps) {
   const getOperationSymbol = (operation: string) => {
     switch (operation) {
@@ -60,7 +81,7 @@ export function ProblemDisplay({
   };
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md border-0 shadow-none">
       <CardContent className="p-6 sm:p-8">
         {/* Operation type badge */}
         <div className="flex items-center justify-center mb-6">
@@ -74,8 +95,8 @@ export function ProblemDisplay({
           </Badge>
         </div>
 
-        {/* Math problem */}
-        <div className="text-center space-y-4">
+        {/* Math problem with integrated answer */}
+        <div className="text-center space-y-6">
           <div className="text-4xl sm:text-5xl md:text-6xl font-bold font-mono tracking-wide">
             <span>{problem.operand1}</span>
             <span
@@ -86,10 +107,57 @@ export function ProblemDisplay({
             <span>{problem.operand2}</span>
           </div>
 
-          <div className="text-4xl sm:text-5xl font-bold font-mono text-muted-foreground">
-            = ?
+          <div className="text-4xl sm:text-5xl font-bold font-mono text-muted-foreground flex items-center justify-center gap-3">
+            <span>=</span>
+
+            {/* Check if we're on mobile */}
+            {typeof window !== "undefined" && window.innerWidth < 768 ? (
+              // Mobile: Show answer display
+              <div className="min-w-[120px] px-4 py-2 text-3xl sm:text-4xl font-bold text-center bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center">
+                {userAnswer || "?"}
+              </div>
+            ) : (
+              // Desktop: Show input field
+              <div className="min-w-[120px]">
+                <AnswerInput
+                  value={userAnswer}
+                  onChange={onAnswerChange}
+                  onKeyPress={onKeyPress}
+                  disabled={disabled}
+                  placeholder="?"
+                />
+              </div>
+            )}
           </div>
+
+          {/* Desktop Submit Button */}
+          {typeof window !== "undefined" && window.innerWidth >= 768 && (
+            <div className="flex justify-center mt-4">
+              <Button
+                onClick={onSubmit}
+                disabled={
+                  !userAnswer.trim() || disabled || feedbackType !== null
+                }
+                size="lg"
+                className="px-8 h-12"
+              >
+                Submit Answer
+              </Button>
+            </div>
+          )}
         </div>
+
+        {/* Mobile Number Keypad */}
+        {typeof window !== "undefined" && window.innerWidth < 768 && (
+          <div className="mt-6">
+            <NumberKeypad
+              onNumberPress={onNumberPress}
+              onBackspace={onBackspace}
+              onSubmit={onKeypadSubmit}
+              disabled={disabled || feedbackType !== null}
+            />
+          </div>
+        )}
 
         {/* Strategy hint */}
         {showStrategy && problem.strategyCategory && (

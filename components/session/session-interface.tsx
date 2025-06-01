@@ -1,22 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { MainLayout } from "@/components/layout/main-layout";
 import { ProblemDisplay } from "./problem-display";
-import { AnswerInput } from "./answer-input";
 import { SessionProgress } from "./session-progress";
 import { SessionTimer } from "./session-timer";
 import { SessionControls } from "./session-controls";
 import { SessionResults } from "./session-results";
 import { AnswerFeedback } from "./answer-feedback";
 import { SessionCelebration } from "./session-celebration";
-import { NumberKeypad } from "./number-keypad";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSession } from "@/lib/contexts/session-context";
 import { useUser } from "@/lib/contexts/user-context";
-import { ArrowLeft, Home, Play } from "lucide-react";
+import { ArrowLeft, Play } from "lucide-react";
 
 type FeedbackType = "correct" | "incorrect" | "timeout" | null;
 
@@ -26,6 +24,7 @@ export function SessionInterface() {
   const {
     currentSession,
     currentProblem,
+    problemIndex,
     isActive,
     isPaused,
     hasTimedOut,
@@ -44,6 +43,9 @@ export function SessionInterface() {
     correctAnswer?: number;
     userAnswer?: number;
   }>({});
+
+  // Track when we're expecting a natural session completion
+  const sessionJustCompletedRef = useRef(false);
 
   // Watch for timeout
   useEffect(() => {
@@ -74,14 +76,22 @@ export function SessionInterface() {
   // Auto-start session if no current session
   useEffect(() => {
     if (currentUser && !currentSession && !isActive) {
+      // Reset celebration and results state when starting a new session
+      setShowCelebration(false);
+      setShowResults(false);
+      sessionJustCompletedRef.current = false;
       startSession();
     }
   }, [currentUser, currentSession, isActive, startSession]);
 
-  // Show celebration when session is complete, then results
+  // Show celebration when session naturally completes
   useEffect(() => {
     if (currentSession?.completed && !showCelebration && !showResults) {
-      setShowCelebration(true);
+      // Only show celebration if this session just completed naturally
+      if (sessionJustCompletedRef.current) {
+        setShowCelebration(true);
+        sessionJustCompletedRef.current = false; // Reset the flag
+      }
     }
   }, [currentSession, showCelebration, showResults]);
 
@@ -109,6 +119,11 @@ export function SessionInterface() {
   const handleFeedbackComplete = () => {
     setFeedbackType(null);
     setFeedbackData({});
+
+    // Check if this is the last problem - if so, mark that session is about to complete naturally
+    if (currentSession && problemIndex === currentSession.problems.length - 1) {
+      sessionJustCompletedRef.current = true;
+    }
 
     // Advance to next problem after feedback animation
     setTimeout(() => {
@@ -150,9 +165,6 @@ export function SessionInterface() {
 
   const progress = getSessionProgress();
 
-  // Check if we're on mobile
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-
   // Loading state
   if (!currentUser) {
     return (
@@ -177,6 +189,11 @@ export function SessionInterface() {
             onBackToHome={() => router.push("/")}
             onNewSession={() => {
               setShowResults(false);
+              setShowCelebration(false);
+              setFeedbackType(null);
+              setFeedbackData({});
+              setUserAnswer("");
+              sessionJustCompletedRef.current = false;
               startSession();
             }}
           />
@@ -224,88 +241,39 @@ export function SessionInterface() {
   // Active session state
   return (
     <MainLayout>
-      <div className="max-w-2xl mx-auto space-y-2 sm:space-y-4 px-4">
+      <div className="max-w-2xl mx-auto space-y-2 sm:space-y-4">
         {/* Compact Header with back button, timer and progress */}
-        <div className="grid grid-cols-5 items-center gap-2 py-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push("/")}
-            className="text-muted-foreground hover:text-foreground text-sm col-span-1"
-          >
-            <ArrowLeft className="mr-1 h-3 w-3" />
-            <Home className="mr-1 h-3 w-3" />
-          </Button>
-          <div className="col-span-2">
-            <SessionTimer />
-          </div>
-          <div className="col-span-2">
+        <div className="grid grid-cols-5 items-center gap-4 py-2">
+          <div className="col-span-3">
             <SessionProgress
               current={progress.completed}
               total={progress.total}
               percentage={progress.percentage}
             />
           </div>
+          <div className="col-span-2">
+            <SessionTimer />
+          </div>
         </div>
 
-        {/* Problem display */}
+        {/* Problem display with integrated answer input */}
         <div className="flex justify-center py-2">
           {currentProblem && (
             <ProblemDisplay
               problem={currentProblem}
               showStrategy={currentUser.preferences.showStrategies}
+              userAnswer={userAnswer}
+              onAnswerChange={setUserAnswer}
+              onSubmit={handleSubmitAnswer}
+              onKeyPress={handleKeyPress}
+              onNumberPress={handleNumberPress}
+              onBackspace={handleBackspace}
+              onKeypadSubmit={handleKeypadSubmit}
+              disabled={isPaused}
+              feedbackType={feedbackType}
             />
           )}
         </div>
-
-        {/* Answer Input Section */}
-        {isMobile ? (
-          // Mobile: Show read-only display + keypad
-          <>
-            <div className="flex justify-center pb-2">
-              <div className="text-center">
-                <div className="text-sm text-muted-foreground mb-1">
-                  Your Answer
-                </div>
-                <div className="w-32 px-4 py-2 text-xl font-bold text-center bg-white border-2 border-gray-200 rounded-lg min-h-[44px] flex items-center justify-center">
-                  {userAnswer || "—"}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-center">
-              <NumberKeypad
-                onNumberPress={handleNumberPress}
-                onBackspace={handleBackspace}
-                onSubmit={handleKeypadSubmit}
-                disabled={isPaused || feedbackType !== null}
-              />
-            </div>
-          </>
-        ) : (
-          // Desktop: Traditional input + button
-          <div className="space-y-4">
-            <AnswerInput
-              value={userAnswer}
-              onChange={setUserAnswer}
-              onKeyPress={handleKeyPress}
-              disabled={isPaused || feedbackType !== null}
-              placeholder="Enter your answer"
-            />
-            <div className="flex justify-center">
-              <Button
-                onClick={handleSubmitAnswer}
-                disabled={
-                  !userAnswer.trim() || isPaused || feedbackType !== null
-                }
-                size="lg"
-                className="w-full sm:w-auto px-8 h-12"
-              >
-                Submit Answer
-              </Button>
-            </div>
-          </div>
-        )}
 
         {/* Compact Session controls */}
         <div className="pt-2">

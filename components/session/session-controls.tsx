@@ -11,11 +11,11 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useSession } from "@/lib/contexts/session-context";
-import { Pause, Play, Square, AlertTriangle } from "lucide-react";
+import { AlertTriangle, CircleSlash } from "lucide-react";
 
 export function SessionControls() {
   const router = useRouter();
-  const { isPaused, pauseSession, resumeSession, endSession } = useSession();
+  const { endSession } = useSession();
   const [showEndDialog, setShowEndDialog] = useState(false);
 
   const handleEndSession = () => {
@@ -25,33 +25,14 @@ export function SessionControls() {
 
   return (
     <>
-      <div className="flex justify-center gap-3">
+      <div className="flex justify-center">
         <Button
           variant="outline"
-          size="sm"
-          onClick={isPaused ? resumeSession : pauseSession}
-          className="flex items-center gap-2"
-        >
-          {isPaused ? (
-            <>
-              <Play className="h-4 w-4" />
-              Resume
-            </>
-          ) : (
-            <>
-              <Pause className="h-4 w-4" />
-              Pause
-            </>
-          )}
-        </Button>
-
-        <Button
-          variant="outline"
-          size="sm"
+          size="default"
           onClick={() => setShowEndDialog(true)}
           className="flex items-center gap-2 text-destructive hover:text-destructive"
         >
-          <Square className="h-4 w-4" />
+          <CircleSlash className="h-4 w-4" />
           End Session
         </Button>
       </div>
