@@ -113,7 +113,7 @@ export function ProblemDisplay({
             {/* Check if we're on mobile */}
             {typeof window !== "undefined" && window.innerWidth < 768 ? (
               // Mobile: Show answer display
-              <div className="min-w-[120px] px-4 py-2 text-3xl sm:text-4xl font-bold text-center bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center">
+              <div className="min-w-[120px] px-4 py-2 text-3xl sm:text-4xl font-bold text-center text-blue-600 bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center">
                 {userAnswer || "?"}
               </div>
             ) : (

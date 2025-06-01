@@ -45,7 +45,7 @@ export function AnswerInput({
         onKeyPress={onKeyPress}
         placeholder={placeholder}
         disabled={disabled}
-        className="text-center text-2xl sm:text-3xl h-16 sm:h-20 font-mono border-2 focus:border-primary"
+        className="text-center text-2xl sm:text-3xl text-blue-600 h-16 sm:h-20 font-mono border-2 focus:border-primary"
         autoComplete="off"
         autoFocus
       />

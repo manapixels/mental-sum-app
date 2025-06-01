@@ -96,7 +96,7 @@ export function NumberKeypad({
         <KeypadButton
           onClick={onBackspace}
           variant="action"
-          className="bg-red-500 border-red-600 hover:bg-red-600 active:bg-red-700"
+          className="bg-gray-500 border-gray-600 hover:bg-gray-600 active:bg-gray-700"
         >
           <Delete className="h-5 w-5" />
         </KeypadButton>
