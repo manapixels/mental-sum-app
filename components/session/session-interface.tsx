@@ -15,6 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useSession } from "@/lib/contexts/session-context";
 import { useUser } from "@/lib/contexts/user-context";
 import { ArrowLeft, Play } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
 
 type FeedbackType = "correct" | "incorrect" | "timeout" | null;
 
@@ -257,27 +258,27 @@ export function SessionInterface() {
         {/* Problem display with integrated answer input */}
         <div className="flex justify-center py-2">
           {currentProblem && (
-            <ProblemDisplay
-              problem={currentProblem}
-              showStrategy={currentUser.preferences.showStrategies}
-              userAnswer={userAnswer}
-              onAnswerChange={setUserAnswer}
-              onSubmit={handleSubmitAnswer}
-              onKeyPress={handleKeyPress}
-              onNumberPress={handleNumberPress}
-              onBackspace={handleBackspace}
-              onKeypadSubmit={handleKeypadSubmit}
-              onFeedbackComplete={handleFeedbackComplete}
-              disabled={isPaused}
-              feedbackType={feedbackType}
-            />
+            <AnimatePresence>
+              <ProblemDisplay
+                problem={currentProblem}
+                showStrategy={currentUser.preferences.showStrategies}
+                userAnswer={userAnswer}
+                onAnswerChange={setUserAnswer}
+                onSubmit={handleSubmitAnswer}
+                onKeyPress={handleKeyPress}
+                onNumberPress={handleNumberPress}
+                onBackspace={handleBackspace}
+                onKeypadSubmit={handleKeypadSubmit}
+                onFeedbackComplete={handleFeedbackComplete}
+                disabled={isPaused}
+                feedbackType={feedbackType}
+              />
+            </AnimatePresence>
           )}
         </div>
 
         {/* Compact Session controls */}
-        <div className="pt-2">
-          <SessionControls />
-        </div>
+        <SessionControls />
       </div>
 
       {/* Session Celebration */}

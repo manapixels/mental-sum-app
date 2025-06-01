@@ -32,21 +32,6 @@ export function SessionResults({
       : 0;
   const averageTime = Math.round(session.averageTime * 10) / 10;
 
-  // Helper function to format time in minutes and seconds
-  const formatSessionTime = (startTime: Date, endTime: Date) => {
-    const totalSeconds = Math.round(
-      (endTime.getTime() - startTime.getTime()) / 1000,
-    );
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-
-    if (minutes > 0) {
-      return `${minutes}m ${seconds}s`;
-    } else {
-      return `${seconds}s`;
-    }
-  };
-
   const getPerformanceColor = (accuracy: number) => {
     if (accuracy >= 90) return "text-green-600";
     if (accuracy >= 70) return "text-yellow-600";
@@ -135,7 +120,7 @@ export function SessionResults({
       </div>
 
       {/* Operation Breakdown */}
-      <Card>
+      <Card className="py-4">
         <CardHeader>
           <CardTitle className="text-lg">Performance by Operation</CardTitle>
         </CardHeader>
@@ -181,40 +166,6 @@ export function SessionResults({
                 );
               },
             )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Quick Stats */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Session Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-muted-foreground">Total Time:</span>
-              <div className="font-medium">
-                {session.endTime
-                  ? formatSessionTime(session.startTime, session.endTime)
-                  : "N/A"}
-              </div>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Problems/min:</span>
-              <div className="font-medium">
-                {session.endTime
-                  ? Math.round(
-                      (completedProblems.length /
-                        ((session.endTime.getTime() -
-                          session.startTime.getTime()) /
-                          1000 /
-                          60)) *
-                        10,
-                    ) / 10
-                  : "N/A"}
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>

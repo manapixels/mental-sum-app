@@ -8,6 +8,7 @@ import { Plus, Minus, X, Divide } from "lucide-react";
 import { AnswerInput } from "./answer-input";
 import { NumberKeypad } from "./number-keypad";
 import { AnswerFeedback } from "./answer-feedback";
+import { motion } from "framer-motion";
 
 interface ProblemDisplayProps {
   problem: Problem;
@@ -84,108 +85,117 @@ export function ProblemDisplay({
   };
 
   return (
-    <Card className="w-full max-w-md border-0 shadow-none">
-      <CardContent className="p-6 sm:p-8">
-        {/* Operation type badge */}
-        <div className="flex items-center justify-center mb-6">
-          <Badge
-            variant="secondary"
-            className="flex items-center gap-1 text-sm"
-          >
-            {getOperationIcon(problem.operation)}
-            {problem.operation.charAt(0).toUpperCase() +
-              problem.operation.slice(1)}
-          </Badge>
-        </div>
-
-        {/* Math problem with integrated answer */}
-        <div className="text-center space-y-6">
-          <div className="text-4xl sm:text-5xl md:text-6xl font-bold font-mono tracking-wide">
-            <span>{problem.operand1}</span>
-            <span
-              className={`mx-3 sm:mx-4 ${getOperationColor(problem.operation)}`}
+    <motion.div
+      key={problem.id}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.4, ease: "easeInOut" }}
+      className="w-full max-w-md"
+    >
+      <Card className="w-full max-w-md border-0 shadow-none">
+        <CardContent className="p-6 sm:p-8">
+          {/* Operation type badge */}
+          <div className="flex items-center justify-center mb-6">
+            <Badge
+              variant="secondary"
+              className="flex items-center gap-1 text-sm"
             >
-              {getOperationSymbol(problem.operation)}
-            </span>
-            <span>{problem.operand2}</span>
+              {getOperationIcon(problem.operation)}
+              {problem.operation.charAt(0).toUpperCase() +
+                problem.operation.slice(1)}
+            </Badge>
           </div>
 
-          <div className="text-4xl sm:text-5xl font-bold font-mono text-muted-foreground flex items-center justify-center gap-3">
-            <span>=</span>
+          {/* Math problem with integrated answer */}
+          <div className="text-center space-y-6">
+            <div className="text-4xl sm:text-5xl md:text-6xl font-bold font-mono tracking-wide">
+              <span>{problem.operand1}</span>
+              <span
+                className={`mx-3 sm:mx-4 ${getOperationColor(problem.operation)}`}
+              >
+                {getOperationSymbol(problem.operation)}
+              </span>
+              <span>{problem.operand2}</span>
+            </div>
 
-            {/* Check if we're on mobile */}
-            {typeof window !== "undefined" && window.innerWidth < 768 ? (
-              // Mobile: Show answer display
-              <div className="min-w-[120px] px-4 py-2 text-3xl sm:text-4xl font-bold text-center text-blue-600 bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center">
-                {userAnswer || "?"}
-              </div>
-            ) : (
-              // Desktop: Show input field
-              <div className="min-w-[120px]">
-                <AnswerInput
-                  value={userAnswer}
-                  onChange={onAnswerChange}
-                  onKeyPress={onKeyPress}
-                  disabled={disabled}
-                  placeholder="?"
-                />
+            <div className="text-4xl sm:text-5xl font-bold font-mono text-muted-foreground flex items-center justify-center gap-3">
+              <span>=</span>
+
+              {/* Check if we're on mobile */}
+              {typeof window !== "undefined" && window.innerWidth < 768 ? (
+                // Mobile: Show answer display
+                <div className="min-w-[120px] px-4 py-2 text-3xl sm:text-4xl font-bold text-center text-blue-600 bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center">
+                  {userAnswer || "?"}
+                </div>
+              ) : (
+                // Desktop: Show input field
+                <div className="min-w-[120px]">
+                  <AnswerInput
+                    value={userAnswer}
+                    onChange={onAnswerChange}
+                    onKeyPress={onKeyPress}
+                    disabled={disabled}
+                    placeholder="?"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Desktop Submit Button */}
+            {typeof window !== "undefined" && window.innerWidth >= 768 && (
+              <div className="flex justify-center mt-4">
+                <Button
+                  onClick={onSubmit}
+                  disabled={
+                    !userAnswer.trim() || disabled || feedbackType !== null
+                  }
+                  size="lg"
+                  className="px-8 h-12"
+                >
+                  Submit Answer
+                </Button>
               </div>
             )}
           </div>
 
-          {/* Desktop Submit Button */}
-          {typeof window !== "undefined" && window.innerWidth >= 768 && (
-            <div className="flex justify-center mt-4">
-              <Button
-                onClick={onSubmit}
-                disabled={
-                  !userAnswer.trim() || disabled || feedbackType !== null
-                }
-                size="lg"
-                className="px-8 h-12"
-              >
-                Submit Answer
-              </Button>
+          {/* Mobile Number Keypad or Feedback */}
+          {typeof window !== "undefined" && window.innerWidth < 768 && (
+            <div className="mt-6">
+              {/* Fixed height container to prevent layout shifts */}
+              <div className="min-h-[280px] flex items-center justify-center">
+                {feedbackType ? (
+                  <AnswerFeedback
+                    type={feedbackType}
+                    correctAnswer={problem.correctAnswer}
+                    userAnswer={userAnswer ? parseInt(userAnswer) : undefined}
+                    onComplete={onFeedbackComplete}
+                    compact={true}
+                  />
+                ) : (
+                  <NumberKeypad
+                    onNumberPress={onNumberPress}
+                    onBackspace={onBackspace}
+                    onSubmit={onKeypadSubmit}
+                    disabled={disabled || feedbackType !== null}
+                  />
+                )}
+              </div>
             </div>
           )}
-        </div>
 
-        {/* Mobile Number Keypad or Feedback */}
-        {typeof window !== "undefined" && window.innerWidth < 768 && (
-          <div className="mt-6">
-            {/* Fixed height container to prevent layout shifts */}
-            <div className="min-h-[280px] flex items-center justify-center">
-              {feedbackType ? (
-                <AnswerFeedback
-                  type={feedbackType}
-                  correctAnswer={problem.correctAnswer}
-                  userAnswer={userAnswer ? parseInt(userAnswer) : undefined}
-                  onComplete={onFeedbackComplete}
-                  compact={true}
-                />
-              ) : (
-                <NumberKeypad
-                  onNumberPress={onNumberPress}
-                  onBackspace={onBackspace}
-                  onSubmit={onKeypadSubmit}
-                  disabled={disabled || feedbackType !== null}
-                />
-              )}
+          {/* Strategy hint */}
+          {showStrategy && problem.strategyCategory && (
+            <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+              <div className="text-sm font-medium text-muted-foreground mb-1">
+                💡 Strategy Hint:
+              </div>
+              <div className="text-sm">{getStrategyHint(problem)}</div>
             </div>
-          </div>
-        )}
-
-        {/* Strategy hint */}
-        {showStrategy && problem.strategyCategory && (
-          <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-            <div className="text-sm font-medium text-muted-foreground mb-1">
-              💡 Strategy Hint:
-            </div>
-            <div className="text-sm">{getStrategyHint(problem)}</div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
 

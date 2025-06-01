@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Check, X, Clock } from "lucide-react";
 
 type FeedbackType = "correct" | "incorrect" | "timeout" | null;
@@ -21,18 +21,22 @@ export function AnswerFeedback({
   onComplete,
   compact = false,
 }: AnswerFeedbackProps) {
+  // Use ref to store the latest onComplete callback to avoid dependency issues
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+
   // Auto-dismiss after animation completes
   useEffect(() => {
     if (!type) return;
 
     const timer = setTimeout(() => {
-      if (onComplete) {
-        onComplete();
+      if (onCompleteRef.current) {
+        onCompleteRef.current();
       }
     }, 2000); // 2 seconds for all feedback types
 
     return () => clearTimeout(timer);
-  }, [type, onComplete]);
+  }, [type]); // Only depend on type, not onComplete
 
   if (!type) return null;
 

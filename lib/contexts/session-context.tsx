@@ -45,28 +45,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [isPaused, setIsPaused] = useState(false);
   const [hasTimedOut, setHasTimedOut] = useState(false);
 
-  // Timer effect
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-
-    if (isActive && !isPaused && timeRemaining > 0) {
-      interval = setInterval(() => {
-        setTimeRemaining((time) => {
-          if (time <= 1) {
-            // Time's up - automatically submit current answer as wrong
-            handleTimeUp();
-            return 0;
-          }
-          return time - 1;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isActive, isPaused, timeRemaining]);
-
   // Automatic pause/resume based on window focus
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -101,26 +79,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, [isActive, hasTimedOut]);
 
   const currentProblem = currentSession?.problems[problemIndex] || null;
-
-  const handleTimeUp = useCallback(() => {
-    if (!currentProblem) return;
-
-    // Set timeout flag for UI feedback
-    setHasTimedOut(true);
-
-    // Mark as incorrect due to timeout
-    const timeLimit = currentUser?.preferences.timeLimit || 30;
-    const updatedProblem: Problem = {
-      ...currentProblem,
-      userAnswer: -1, // Special value to indicate timeout
-      isCorrect: false,
-      timeSpent: timeLimit,
-      completedAt: new Date(),
-    };
-
-    updateProblemInSession(updatedProblem);
-    // Don't auto-advance here - let the UI handle it
-  }, [currentProblem, currentUser]);
 
   const startSession = useCallback(() => {
     if (!currentUser) return;
@@ -222,22 +180,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       updateProblemInSession,
     ],
   );
-
-  const nextProblem = useCallback(() => {
-    if (!currentSession) return;
-
-    // Clear timeout flag for next problem
-    setHasTimedOut(false);
-
-    if (problemIndex < currentSession.problems.length - 1) {
-      // Move to next problem
-      setProblemIndex((prev) => prev + 1);
-      setTimeRemaining(currentUser?.preferences.timeLimit || 30);
-    } else {
-      // Session complete
-      endSession();
-    }
-  }, [currentSession, problemIndex, currentUser]);
 
   const pauseSession = useCallback(() => {
     setIsPaused(true);
@@ -348,6 +290,64 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const clearTimeout = useCallback(() => {
     setHasTimedOut(false);
   }, []);
+
+  const nextProblem = useCallback(() => {
+    if (!currentSession) return;
+
+    // Clear timeout flag for next problem
+    setHasTimedOut(false);
+
+    if (problemIndex < currentSession.problems.length - 1) {
+      // Move to next problem
+      setProblemIndex((prev) => prev + 1);
+      setTimeRemaining(currentUser?.preferences.timeLimit || 30);
+    } else {
+      // Session complete
+      endSession();
+    }
+  }, [currentSession, problemIndex, currentUser, endSession]);
+
+  const handleTimeUp = useCallback(() => {
+    if (!currentProblem) return;
+
+    // Set timeout flag for UI feedback
+    setHasTimedOut(true);
+
+    // Mark as incorrect due to timeout
+    const timeLimit = currentUser?.preferences.timeLimit || 30;
+    const updatedProblem: Problem = {
+      ...currentProblem,
+      userAnswer: -1, // Special value to indicate timeout
+      isCorrect: false,
+      timeSpent: timeLimit,
+      completedAt: new Date(),
+    };
+
+    updateProblemInSession(updatedProblem);
+    // Don't auto-advance here - let the UI handle it
+  }, [currentProblem, currentUser, updateProblemInSession]);
+
+  // Timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+
+    if (isActive && !isPaused && timeRemaining > 0) {
+      interval = setInterval(() => {
+        setTimeRemaining((time) => {
+          if (time <= 1) {
+            // Time's up - automatically submit current answer as wrong
+            handleTimeUp();
+            return 0;
+          }
+          return time - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isActive, isPaused, timeRemaining, handleTimeUp]);
 
   const value: SessionContextType = {
     currentSession,
