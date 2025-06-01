@@ -112,13 +112,16 @@ export function SessionInterface() {
 
       // Submit the answer (this will handle the session logic)
       submitAnswer(answer);
-      setUserAnswer("");
+      // Don't clear the answer here - wait until feedback completes
     }
   };
 
   const handleFeedbackComplete = () => {
     setFeedbackType(null);
     setFeedbackData({});
+
+    // Clear the answer when moving to next question
+    setUserAnswer("");
 
     // Check if this is the last problem - if so, mark that session is about to complete naturally
     if (currentSession && problemIndex === currentSession.problems.length - 1) {
@@ -264,6 +267,7 @@ export function SessionInterface() {
               onNumberPress={handleNumberPress}
               onBackspace={handleBackspace}
               onKeypadSubmit={handleKeypadSubmit}
+              onFeedbackComplete={handleFeedbackComplete}
               disabled={isPaused}
               feedbackType={feedbackType}
             />
@@ -276,20 +280,22 @@ export function SessionInterface() {
         </div>
       </div>
 
-      {/* Answer Feedback Overlay */}
-      <AnswerFeedback
-        type={feedbackType}
-        correctAnswer={feedbackData.correctAnswer}
-        userAnswer={feedbackData.userAnswer}
-        onComplete={handleFeedbackComplete}
-      />
-
       {/* Session Celebration */}
       {currentSession && (
         <SessionCelebration
           session={currentSession}
           show={showCelebration}
           onComplete={handleCelebrationComplete}
+        />
+      )}
+
+      {/* Answer Feedback Overlay - Only for desktop */}
+      {typeof window !== "undefined" && window.innerWidth >= 768 && (
+        <AnswerFeedback
+          type={feedbackType}
+          correctAnswer={feedbackData.correctAnswer}
+          userAnswer={feedbackData.userAnswer}
+          onComplete={handleFeedbackComplete}
         />
       )}
 

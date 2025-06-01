@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Minus, X, Divide } from "lucide-react";
 import { AnswerInput } from "./answer-input";
 import { NumberKeypad } from "./number-keypad";
+import { AnswerFeedback } from "./answer-feedback";
 
 interface ProblemDisplayProps {
   problem: Problem;
@@ -18,6 +19,7 @@ interface ProblemDisplayProps {
   onNumberPress: (number: string) => void;
   onBackspace: () => void;
   onKeypadSubmit: () => void;
+  onFeedbackComplete: () => void;
   disabled?: boolean;
   feedbackType: "correct" | "incorrect" | "timeout" | null;
 }
@@ -32,6 +34,7 @@ export function ProblemDisplay({
   onNumberPress,
   onBackspace,
   onKeypadSubmit,
+  onFeedbackComplete,
   disabled = false,
   feedbackType,
 }: ProblemDisplayProps) {
@@ -147,15 +150,28 @@ export function ProblemDisplay({
           )}
         </div>
 
-        {/* Mobile Number Keypad */}
+        {/* Mobile Number Keypad or Feedback */}
         {typeof window !== "undefined" && window.innerWidth < 768 && (
           <div className="mt-6">
-            <NumberKeypad
-              onNumberPress={onNumberPress}
-              onBackspace={onBackspace}
-              onSubmit={onKeypadSubmit}
-              disabled={disabled || feedbackType !== null}
-            />
+            {/* Fixed height container to prevent layout shifts */}
+            <div className="min-h-[280px] flex items-center justify-center">
+              {feedbackType ? (
+                <AnswerFeedback
+                  type={feedbackType}
+                  correctAnswer={problem.correctAnswer}
+                  userAnswer={userAnswer ? parseInt(userAnswer) : undefined}
+                  onComplete={onFeedbackComplete}
+                  compact={true}
+                />
+              ) : (
+                <NumberKeypad
+                  onNumberPress={onNumberPress}
+                  onBackspace={onBackspace}
+                  onSubmit={onKeypadSubmit}
+                  disabled={disabled || feedbackType !== null}
+                />
+              )}
+            </div>
           </div>
         )}
 
