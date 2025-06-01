@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Delete, Check } from "lucide-react";
+import { useSoundEffects } from "@/lib/hooks/use-audio";
 
 interface NumberKeypadProps {
   onNumberPress: (number: string) => void;
@@ -16,6 +17,8 @@ export function NumberKeypad({
   onSubmit,
   disabled = false,
 }: NumberKeypadProps) {
+  const { playKeypadTap } = useSoundEffects();
+
   // Haptic feedback (if supported)
   const triggerHaptic = () => {
     if ("vibrate" in navigator) {
@@ -23,9 +26,16 @@ export function NumberKeypad({
     }
   };
 
-  const handleButtonPress = (action: () => void) => {
+  const handleButtonPress = async (action: () => void) => {
     if (disabled) return;
+
+    // Play sound effect
+    await playKeypadTap();
+
+    // Trigger haptic feedback
     triggerHaptic();
+
+    // Execute the action
     action();
   };
 

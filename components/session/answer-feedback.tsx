@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useRef } from "react";
 import { Check, X, Clock } from "lucide-react";
+import { useSoundEffects } from "@/lib/hooks/use-audio";
 
 type FeedbackType = "correct" | "incorrect" | "timeout" | null;
 
@@ -21,9 +22,33 @@ export function AnswerFeedback({
   onComplete,
   compact = false,
 }: AnswerFeedbackProps) {
+  const { playCorrect, playIncorrect, playTimeout } = useSoundEffects();
+
   // Use ref to store the latest onComplete callback to avoid dependency issues
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
+
+  // Play sound effect when feedback type changes
+  useEffect(() => {
+    if (!type) return;
+
+    // Play appropriate sound effect
+    const playSound = async () => {
+      switch (type) {
+        case "correct":
+          await playCorrect();
+          break;
+        case "incorrect":
+          await playIncorrect();
+          break;
+        case "timeout":
+          await playTimeout();
+          break;
+      }
+    };
+
+    playSound();
+  }, [type, playCorrect, playIncorrect, playTimeout]);
 
   // Auto-dismiss after animation completes
   useEffect(() => {

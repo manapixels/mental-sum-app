@@ -269,3 +269,4 @@ A mental math training application designed to help users improve their calculat
 ---
 
 **For detailed task tracking and development progress, see TASKS.md**
+.

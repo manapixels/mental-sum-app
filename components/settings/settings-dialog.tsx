@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/lib/contexts/user-context";
 import { UserPreferences } from "@/lib/types";
 import { Plus, Minus, Calculator, Brain, Clock, Trophy } from "lucide-react";
+import { AudioSettings } from "@/components/settings/audio-settings";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -379,24 +380,16 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   }
                 />
               </div>
+            </div>
+          </div>
 
-              <div className="flex items-center justify-between p-3 rounded-lg border">
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">Sound Effects</span>
-                  <span className="text-xs text-muted-foreground">
-                    Audio feedback for answers
-                  </span>
-                </div>
-                <Switch
-                  checked={preferences.enableSound}
-                  onCheckedChange={(checked) =>
-                    setPreferences((prev) => ({
-                      ...prev,
-                      enableSound: checked,
-                    }))
-                  }
-                />
-              </div>
+          <Separator />
+
+          {/* Audio Settings */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Audio Settings</Label>
+            <div className="p-3 rounded-lg border">
+              <AudioSettings />
             </div>
           </div>
         </div>
