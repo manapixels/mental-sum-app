@@ -365,7 +365,7 @@
   - Optimized to use single global initialization (no duplicates)
 - ✅ **Added session completion audio**
   - Perfect score (100%): Special celebration sound
-  - Great performance (80%+): Achievement sound
+  - Great performance (90%+): Achievement sound
   - General completion: Success sound
   - Session start sound when training begins
   - Fixed infinite loop bug in celebration sound playback

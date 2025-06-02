@@ -39,17 +39,27 @@ export function SessionCelebration({
 
   const averageTime = Math.round(session.averageTime * 10) / 10;
 
+  // Standardized performance thresholds
+  const getPerformanceStars = (accuracy: number) => {
+    if (accuracy >= 90) return 3;
+    if (accuracy >= 70) return 2;
+    return 1;
+  };
+
   const getPerformanceMessage = () => {
+    const stars = getPerformanceStars(accuracy);
+
     if (accuracy === 100) return "Perfect Score! 🌟";
-    if (accuracy >= 90) return "Outstanding! 🎯";
-    if (accuracy >= 80) return "Excellent Work! 💪";
-    if (accuracy >= 70) return "Great Job! 👏";
+    if (stars === 3) return "Outstanding! 🎯";
+    if (stars === 2) return "Great Job! 👏";
     return "Keep Practicing! 📚";
   };
 
   const getPerformanceIcon = () => {
+    const stars = getPerformanceStars(accuracy);
+
     if (accuracy === 100) return Star;
-    if (accuracy >= 80) return Trophy;
+    if (stars === 3) return Trophy;
     return Zap;
   };
 
@@ -80,8 +90,8 @@ export function SessionCelebration({
           if (accuracy === 100) {
             // Perfect score - special sound
             await playPerfect();
-          } else if (accuracy >= 80) {
-            // Great performance - achievement sound
+          } else if (accuracy >= 90) {
+            // Great performance (3 stars) - achievement sound
             await playAchievement();
           } else {
             // General completion - success sound

@@ -11,6 +11,7 @@ import {
   Home,
   RotateCcw,
   TrendingUp,
+  Star,
 } from "lucide-react";
 
 interface SessionResultsProps {
@@ -32,22 +33,64 @@ export function SessionResults({
       : 0;
   const averageTime = Math.round(session.averageTime * 10) / 10;
 
+  // Standardized performance thresholds
   const getPerformanceColor = (accuracy: number) => {
     if (accuracy >= 90) return "text-green-600";
     if (accuracy >= 70) return "text-yellow-600";
     return "text-red-600";
   };
 
+  const getPerformanceStars = (accuracy: number) => {
+    if (accuracy >= 90) return 3;
+    if (accuracy >= 70) return 2;
+    return 1;
+  };
+
   const getPerformanceBadge = (accuracy: number) => {
-    if (accuracy >= 95)
-      return { text: "Excellent!", variant: "default" as const };
-    if (accuracy >= 85)
-      return { text: "Great!", variant: "secondary" as const };
-    if (accuracy >= 70) return { text: "Good", variant: "secondary" as const };
-    return { text: "Keep Practicing", variant: "outline" as const };
+    const stars = getPerformanceStars(accuracy);
+
+    if (stars === 3) {
+      return { text: "Excellent!", variant: "default" as const, stars: 3 };
+    }
+    if (stars === 2) {
+      return { text: "Good", variant: "secondary" as const, stars: 2 };
+    }
+    return { text: "Keep Practicing", variant: "outline" as const, stars: 1 };
   };
 
   const performanceBadge = getPerformanceBadge(accuracyRate);
+
+  // Component to render stars
+  const StarRating = ({
+    stars,
+    className = "",
+    size = "sm",
+  }: {
+    stars: number;
+    className?: string;
+    size?: "sm" | "md" | "lg";
+  }) => {
+    const sizeClasses = {
+      sm: "h-4 w-4",
+      md: "h-5 w-5",
+      lg: "h-6 w-6",
+    };
+
+    return (
+      <div className={`flex items-center gap-1 ${className}`}>
+        {[1, 2, 3].map((starNum) => (
+          <Star
+            key={starNum}
+            className={`${sizeClasses[size]} ${
+              starNum <= stars
+                ? "fill-yellow-400 text-yellow-400"
+                : "text-gray-300"
+            }`}
+          />
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -60,12 +103,9 @@ export function SessionResults({
           <CardTitle className="text-2xl sm:text-3xl mb-2">
             Session Complete!
           </CardTitle>
-          <div className="flex justify-center">
-            <Badge
-              variant={performanceBadge.variant}
-              className="text-lg px-4 py-1"
-            >
-              {performanceBadge.text}
+          <div className="flex flex-col items-center gap-2">
+            <Badge variant={performanceBadge.variant} className="px-4 py-2">
+              <StarRating stars={performanceBadge.stars} size="lg" />
             </Badge>
           </div>
         </CardHeader>
@@ -87,6 +127,11 @@ export function SessionResults({
             <div className="text-xs text-muted-foreground mt-1 hidden sm:block">
               {correctAnswers}/{completedProblems.length} correct
             </div>
+            <StarRating
+              stars={getPerformanceStars(accuracyRate)}
+              className="mt-2 justify-center"
+              size="sm"
+            />
           </CardContent>
         </Card>
 
@@ -122,7 +167,7 @@ export function SessionResults({
       {/* Operation Breakdown */}
       <Card className="py-4">
         <CardHeader>
-          <CardTitle className="text-lg">Performance</CardTitle>
+          <CardTitle className="text-lg">Performance by Operation</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -150,6 +195,10 @@ export function SessionResults({
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
+                      <StarRating
+                        stars={getPerformanceStars(opAccuracy)}
+                        size="sm"
+                      />
                       <span
                         className={`text-lg font-medium ${getPerformanceColor(opAccuracy)}`}
                       >
