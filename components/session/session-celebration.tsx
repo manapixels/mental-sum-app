@@ -93,20 +93,16 @@ export function SessionCelebration({
 
         const playCelebrationSound = async () => {
           if (accuracy === 100) {
-            // Perfect score - special sound
             await playPerfect();
             vibrateAchievement();
           } else if (accuracy >= 90) {
-            // Great performance (3 stars) - achievement sound
             await playAchievement();
             vibrateSessionComplete();
           } else {
-            // General completion - success sound
             await playSuccess();
             vibrateSessionComplete();
           }
         };
-
         playCelebrationSound();
       }
 
@@ -120,16 +116,7 @@ export function SessionCelebration({
       // Reset sound played flag when not showing
       soundPlayedRef.current = false;
     }
-  }, [
-    show,
-    onComplete,
-    accuracy,
-    playPerfect,
-    playAchievement,
-    playSuccess,
-    vibrateSessionComplete,
-    vibrateAchievement,
-  ]);
+  }, [show, accuracy]);
 
   if (!show) return null;
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { MainLayout } from "@/components/layout/main-layout";
 import { ProblemDisplay } from "./problem-display";
@@ -63,6 +63,19 @@ export function SessionInterface() {
       return;
     }
   }, [currentUser, router]);
+
+  const handleCelebrationComplete = useCallback(() => {
+    setShowCelebration(false);
+    setShowResults(true);
+  }, []); // Empty dependency array makes it stable
+
+  // Number keypad handlers
+  const handleNumberPress = (number: string) => {
+    if (feedbackType === null) {
+      // Only allow input when not showing feedback
+      setUserAnswer((prev) => prev + number);
+    }
+  };
 
   // Clean up any stale session data on fresh page loads
   useEffect(() => {
@@ -183,31 +196,20 @@ export function SessionInterface() {
 
   const handleFeedbackComplete = () => {
     setFeedbackType(null);
-
-    // Clear the answer when moving to next question
     setUserAnswer("");
 
-    // Check if this is the last problem - if so, mark that session is about to complete naturally
     if (currentSession && problemIndex === currentSession.problems.length - 1) {
-      sessionJustCompletedRef.current = true;
-    }
-
-    // Advance to next problem after feedback animation
-    setTimeout(() => {
-      nextProblem();
-    }, 100); // Small delay to ensure smooth transition
-  };
-
-  const handleCelebrationComplete = () => {
-    setShowCelebration(false);
-    setShowResults(true);
-  };
-
-  // Number keypad handlers
-  const handleNumberPress = (number: string) => {
-    if (feedbackType === null) {
-      // Only allow input when not showing feedback
-      setUserAnswer((prev) => prev + number);
+      // Last problem: show celebration and then formally end session
+      setShowCelebration(true);
+      // Delay ending session slightly to allow celebration UI to kick in
+      setTimeout(() => {
+        nextProblem(); // This will call endSession()
+      }, 100);
+    } else {
+      // Not the last problem: advance to next problem
+      setTimeout(() => {
+        nextProblem();
+      }, 100);
     }
   };
 

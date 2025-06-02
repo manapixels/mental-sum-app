@@ -29,12 +29,8 @@ export function SessionProgress({
       }
       setPrevCurrent(current);
 
-      // Smooth percentage transition
-      const timer = setTimeout(() => {
-        setDisplayPercentage(percentage);
-      }, 50);
-
-      return () => clearTimeout(timer);
+      // Update immediately for responsive progress bar
+      setDisplayPercentage(percentage);
     }
   }, [percentage, displayPercentage, current, prevCurrent]);
 
@@ -73,7 +69,7 @@ export function SessionProgress({
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
             >
-              {current + 1} / {total}
+              Question {current + 1}
             </motion.span>
           </AnimatePresence>
         </motion.div>
