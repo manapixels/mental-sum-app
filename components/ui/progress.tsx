@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import * as ProgressPrimitive from "@radix-ui/react-progress";
+import { motion } from "framer-motion";
 
 import { cn } from "@/lib/utils";
 
@@ -21,9 +22,32 @@ function Progress({
     >
       <ProgressPrimitive.Indicator
         data-slot="progress-indicator"
-        className="bg-primary h-full w-full flex-1 transition-all"
+        className="h-full w-full flex-1 overflow-hidden rounded-full"
         style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
-      />
+      >
+        <motion.div
+          className="bg-primary h-full w-full"
+          initial={{ width: 0 }}
+          animate={{
+            width: "100%",
+            background:
+              value && value > 80
+                ? "linear-gradient(90deg, hsl(var(--primary)), #10b981)"
+                : undefined,
+          }}
+          transition={{
+            duration: 0.8,
+            ease: [0.4, 0.0, 0.2, 1], // Custom cubic-bezier for smooth easing
+            delay: 0.1,
+          }}
+          style={{
+            background:
+              value && value > 80
+                ? "linear-gradient(90deg, hsl(var(--primary)), #10b981)"
+                : "hsl(var(--primary))",
+          }}
+        />
+      </ProgressPrimitive.Indicator>
     </ProgressPrimitive.Root>
   );
 }

@@ -32,9 +32,7 @@ export function SessionTimer() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40">
       {/* Timer text - subtle and small - above progress bar */}
-      <div
-        className={`text-center py-1 ${getBackgroundColor()} transition-colors duration-300`}
-      >
+      <div className={`text-center py-1 transition-colors duration-300`}>
         {isPaused ? (
           <div className="flex items-center justify-center gap-1 text-xs text-gray-600">
             <Pause className="h-3 w-3" />

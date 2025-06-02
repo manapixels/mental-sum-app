@@ -27,7 +27,8 @@ export type SoundId =
   | "session-start"
   | "timer-warning"
   | "timer-critical"
-  | "achievement-unlock";
+  | "achievement-unlock"
+  | "settings-toggle";
 
 class AudioManager {
   private audioContext: AudioContext | null = null;
@@ -92,6 +93,12 @@ class AudioManager {
       category: "achievement",
       volume: 0.8,
     },
+    "settings-toggle": {
+      id: "settings-toggle",
+      src: "/audio/click.mp3", // Reuse click sound for now
+      category: "interface",
+      volume: 0.3,
+    },
   };
 
   constructor() {
@@ -106,12 +113,10 @@ class AudioManager {
     if (this.isInitialized || !this.isSupported) return;
 
     try {
-      // Create AudioContext for better audio control
-      if (typeof window !== "undefined" && window.AudioContext) {
-        this.audioContext = new AudioContext();
-      }
+      // Don't create AudioContext immediately - wait until first sound play
+      // This avoids the "AudioContext was not allowed to start" warning
 
-      // Preload actual audio files now that we have them
+      // Preload actual audio files (these don't require AudioContext)
       await this.preloadSounds();
 
       this.isInitialized = true;
@@ -122,6 +127,86 @@ class AudioManager {
       console.warn("Failed to initialize audio system:", error);
       this.isSupported = false;
     }
+  }
+
+  /**
+   * Create and resume AudioContext when needed (after user gesture)
+   */
+  private async ensureAudioContext(): Promise<void> {
+    if (
+      !this.audioContext &&
+      typeof window !== "undefined" &&
+      window.AudioContext
+    ) {
+      try {
+        this.audioContext = new AudioContext();
+
+        // If AudioContext is suspended, try to resume it
+        if (this.audioContext.state === "suspended") {
+          await this.audioContext.resume();
+        }
+
+        // Check for silent mode on mobile devices
+        this.checkSilentMode();
+
+        console.debug("AudioContext created and resumed");
+      } catch (error) {
+        console.warn("Failed to create or resume AudioContext:", error);
+      }
+    } else if (this.audioContext && this.audioContext.state === "suspended") {
+      try {
+        await this.audioContext.resume();
+        console.debug("AudioContext resumed");
+      } catch (error) {
+        console.debug("Failed to resume AudioContext:", error);
+      }
+    }
+  }
+
+  /**
+   * Check if device is in silent mode (mobile devices)
+   */
+  private checkSilentMode(): void {
+    if (!this.audioContext || typeof window === "undefined") return;
+
+    try {
+      // Method 1: Check AudioContext state
+      if (this.audioContext.state === "suspended") {
+        console.info("Audio context suspended - device may be in silent mode");
+        return; // Don't create test oscillator if suspended
+      }
+
+      // Method 2: Create a very short, silent audio test
+      // This is a non-intrusive way to detect silent mode on iOS
+      const oscillator = this.audioContext.createOscillator();
+      const gainNode = this.audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(this.audioContext.destination);
+
+      // Set volume to nearly silent to avoid any audible sound
+      gainNode.gain.setValueAtTime(0.001, this.audioContext.currentTime);
+      oscillator.frequency.setValueAtTime(1000, this.audioContext.currentTime);
+
+      // Very short duration test
+      oscillator.start(this.audioContext.currentTime);
+      oscillator.stop(this.audioContext.currentTime + 0.01);
+
+      // On iOS, if the device is in silent mode, this won't play
+      // We can't directly detect this, but it respects the silent mode
+    } catch (error) {
+      console.debug("Silent mode detection not available:", error);
+    }
+  }
+
+  /**
+   * Check if we should respect device silent mode
+   */
+  private shouldRespectSilentMode(): boolean {
+    if (!this.audioContext) return false;
+
+    // If AudioContext is suspended, likely in silent mode
+    return this.audioContext.state === "suspended";
   }
 
   /**
@@ -175,6 +260,17 @@ class AudioManager {
    */
   async play(soundId: SoundId): Promise<void> {
     if (!this.shouldPlaySound(soundId)) return;
+
+    // Ensure AudioContext is created and resumed (user gesture requirement)
+    await this.ensureAudioContext();
+
+    // Respect device silent mode
+    if (this.shouldRespectSilentMode()) {
+      console.debug(
+        `Skipping sound ${soundId} - device appears to be in silent mode`,
+      );
+      return;
+    }
 
     const audio = this.sounds.get(soundId);
     if (!audio) {

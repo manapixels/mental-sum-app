@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import { Trophy, Star, Zap } from "lucide-react";
 import { Session } from "@/lib/types";
 import { useSoundEffects } from "@/lib/hooks/use-audio";
+import { useHaptic } from "@/lib/hooks/use-haptic";
 
 interface SessionCelebrationProps {
   session: Session;
@@ -18,6 +19,7 @@ export function SessionCelebration({
   onComplete,
 }: SessionCelebrationProps) {
   const { playAchievement, playPerfect, playSuccess } = useSoundEffects();
+  const { vibrateSessionComplete, vibrateAchievement } = useHaptic();
   const [confettiPieces, setConfettiPieces] = useState<
     Array<{
       id: number;
@@ -37,7 +39,10 @@ export function SessionCelebration({
       ? Math.round((session.totalCorrect / session.problems.length) * 100)
       : 0;
 
-  const averageTime = Math.round(session.averageTime * 10) / 10;
+  const averageTime = Math.round(
+    session.problems.reduce((sum, p) => sum + (p.timeSpent || 0), 0) /
+      session.problems.length,
+  );
 
   // Standardized performance thresholds
   const getPerformanceStars = (accuracy: number) => {
@@ -90,12 +95,15 @@ export function SessionCelebration({
           if (accuracy === 100) {
             // Perfect score - special sound
             await playPerfect();
+            vibrateAchievement();
           } else if (accuracy >= 90) {
             // Great performance (3 stars) - achievement sound
             await playAchievement();
+            vibrateSessionComplete();
           } else {
             // General completion - success sound
             await playSuccess();
+            vibrateSessionComplete();
           }
         };
 
@@ -112,7 +120,16 @@ export function SessionCelebration({
       // Reset sound played flag when not showing
       soundPlayedRef.current = false;
     }
-  }, [show, onComplete, accuracy]); // Removed sound functions from dependencies
+  }, [
+    show,
+    onComplete,
+    accuracy,
+    playPerfect,
+    playAchievement,
+    playSuccess,
+    vibrateSessionComplete,
+    vibrateAchievement,
+  ]);
 
   if (!show) return null;
 

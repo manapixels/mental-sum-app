@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useEffect, useRef } from "react";
 import { Check, X, Clock } from "lucide-react";
 import { useSoundEffects } from "@/lib/hooks/use-audio";
+import { useHaptic } from "@/lib/hooks/use-haptic";
 
 type FeedbackType = "correct" | "incorrect" | "timeout" | null;
 
@@ -23,41 +24,64 @@ export function AnswerFeedback({
   playSound = true, // Default to true for backward compatibility
 }: AnswerFeedbackProps) {
   const { playCorrect, playIncorrect, playTimeout } = useSoundEffects();
+  const { vibrateCorrect, vibrateIncorrect } = useHaptic();
   const soundPlayedRef = useRef(false);
+  const hapticTriggeredRef = useRef(false);
 
   // Use ref to store the latest onComplete callback to avoid dependency issues
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
-  // Reset sound played flag when type changes
+  // Reset flags when type changes
   useEffect(() => {
     soundPlayedRef.current = false;
+    hapticTriggeredRef.current = false;
   }, [type]);
 
-  // Play sound effect when feedback type changes (only if enabled)
+  // Play sound effect and haptic feedback when feedback type changes
   useEffect(() => {
-    if (!type || !playSound || soundPlayedRef.current) return;
+    if (!type || soundPlayedRef.current) return;
 
     // Mark sound as played to prevent duplicates
     soundPlayedRef.current = true;
 
-    // Play appropriate sound effect
-    const playSoundEffect = async () => {
+    // Play sound and haptic feedback
+    const playSoundAndHaptic = async () => {
       switch (type) {
         case "correct":
-          await playCorrect();
+          if (playSound) await playCorrect();
+          if (!hapticTriggeredRef.current) {
+            vibrateCorrect();
+            hapticTriggeredRef.current = true;
+          }
           break;
         case "incorrect":
-          await playIncorrect();
+          if (playSound) await playIncorrect();
+          if (!hapticTriggeredRef.current) {
+            vibrateIncorrect();
+            hapticTriggeredRef.current = true;
+          }
           break;
         case "timeout":
-          await playTimeout();
+          if (playSound) await playTimeout();
+          if (!hapticTriggeredRef.current) {
+            vibrateIncorrect(); // Use incorrect pattern for timeout
+            hapticTriggeredRef.current = true;
+          }
           break;
       }
     };
 
-    playSoundEffect();
-  }, [type, playCorrect, playIncorrect, playTimeout, playSound]);
+    playSoundAndHaptic();
+  }, [
+    type,
+    playCorrect,
+    playIncorrect,
+    playTimeout,
+    playSound,
+    vibrateCorrect,
+    vibrateIncorrect,
+  ]);
 
   // Auto-dismiss after animation completes
   useEffect(() => {

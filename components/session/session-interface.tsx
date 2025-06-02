@@ -9,6 +9,7 @@ import { SessionTimer } from "./session-timer";
 import { SessionControls } from "./session-controls";
 import { SessionResults } from "./session-results";
 import { SessionCelebration } from "./session-celebration";
+import { SoundToggleButton } from "./sound-toggle-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSession } from "@/lib/contexts/session-context";
@@ -16,6 +17,7 @@ import { useUser } from "@/lib/contexts/user-context";
 import { useSoundEffects } from "@/lib/hooks/use-audio";
 import { ArrowLeft, Play } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
+import { useHaptic } from "@/lib/hooks/use-haptic";
 
 type FeedbackType = "correct" | "incorrect" | "timeout" | null;
 
@@ -23,10 +25,12 @@ export function SessionInterface() {
   const router = useRouter();
   const { currentUser } = useUser();
   const { playSessionStart } = useSoundEffects();
+  const { vibrateTimerWarning, vibrateTimerCritical } = useHaptic();
   const {
     currentSession,
     currentProblem,
     problemIndex,
+    timeRemaining,
     isActive,
     isPaused,
     hasTimedOut,
@@ -49,6 +53,8 @@ export function SessionInterface() {
   const isInitialLoadRef = useRef(true);
   // Track if session start sound has been played
   const sessionStartSoundPlayedRef = useRef(false);
+  // Track timer warnings to prevent duplicate vibrations
+  const timerWarningTriggeredRef = useRef<Set<number>>(new Set());
 
   // IMMEDIATE redirect check - prevents UI flash
   useEffect(() => {
@@ -122,6 +128,36 @@ export function SessionInterface() {
       }
     }
   }, [currentSession, showCelebration, showResults]);
+
+  // Timer warning haptic feedback
+  useEffect(() => {
+    if (!isActive || isPaused || !currentSession) return;
+
+    // Reset warnings when moving to a new problem
+    if (timeRemaining === (currentUser?.preferences.timeLimit || 30)) {
+      timerWarningTriggeredRef.current.clear();
+    }
+
+    // Trigger haptic feedback at specific time thresholds
+    if (timeRemaining === 10 && !timerWarningTriggeredRef.current.has(10)) {
+      vibrateTimerWarning();
+      timerWarningTriggeredRef.current.add(10);
+    } else if (
+      timeRemaining === 5 &&
+      !timerWarningTriggeredRef.current.has(5)
+    ) {
+      vibrateTimerCritical();
+      timerWarningTriggeredRef.current.add(5);
+    }
+  }, [
+    timeRemaining,
+    isActive,
+    isPaused,
+    currentSession,
+    currentUser,
+    vibrateTimerWarning,
+    vibrateTimerCritical,
+  ]);
 
   // Early return if no user - prevents any UI rendering before redirect
   if (!currentUser) {
@@ -306,6 +342,9 @@ export function SessionInterface() {
         {/* Compact Session controls */}
         <SessionControls />
       </div>
+
+      {/* Sound Toggle Button */}
+      <SoundToggleButton />
 
       {/* Session Celebration */}
       {currentSession && (

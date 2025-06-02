@@ -124,6 +124,7 @@ export function useAudio(): UseAudioReturn {
           "timer-warning": "warning",
           "timer-critical": "warning",
           "achievement-unlock": "success",
+          "settings-toggle": "click",
         };
 
         const fallbackEffect = fallbackMap[soundId];
@@ -201,6 +202,7 @@ export function useSoundEffects() {
     playTimerWarning: () => playSound("timer-warning"),
     playTimerCritical: () => playSound("timer-critical"),
     playAchievement: () => playSound("achievement-unlock"),
+    playSettingsToggle: () => playSound("settings-toggle"),
 
     // Fallback effects for missing sounds
     playTimeout: () => playFallbackEffect("warning"),

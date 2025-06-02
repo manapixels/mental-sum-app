@@ -23,6 +23,8 @@ import { useUser } from "@/lib/contexts/user-context";
 import { UserPreferences } from "@/lib/types";
 import { Plus, Minus, Calculator, Brain, Clock, Trophy } from "lucide-react";
 import { AudioSettings } from "@/components/settings/audio-settings";
+import { useSoundEffects } from "@/lib/hooks/use-audio";
+import { useHaptic } from "@/lib/hooks/use-haptic";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -31,6 +33,8 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { currentUser, updateUser } = useUser();
+  const { playSettingsToggle } = useSoundEffects();
+  const { vibrateSettingsToggle } = useHaptic();
   const [preferences, setPreferences] = useState<UserPreferences>(
     currentUser?.preferences
       ? {
@@ -71,6 +75,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     operation: keyof typeof preferences.enabledOperations,
     enabled: boolean,
   ) => {
+    // Play toggle sound and haptic
+    playSettingsToggle();
+    vibrateSettingsToggle();
+
     setPreferences((prev) => ({
       ...prev,
       enabledOperations: {
@@ -372,12 +380,15 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 </div>
                 <Switch
                   checked={preferences.showStrategies}
-                  onCheckedChange={(checked) =>
+                  onCheckedChange={(checked) => {
+                    // Play toggle sound and haptic
+                    playSettingsToggle();
+                    vibrateSettingsToggle();
                     setPreferences((prev) => ({
                       ...prev,
                       showStrategies: checked,
-                    }))
-                  }
+                    }));
+                  }}
                 />
               </div>
             </div>

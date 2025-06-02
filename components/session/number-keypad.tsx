@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Delete, Check } from "lucide-react";
 import { useSoundEffects } from "@/lib/hooks/use-audio";
+import { useHaptic } from "@/lib/hooks/use-haptic";
 
 interface NumberKeypadProps {
   onNumberPress: (number: string) => void;
@@ -18,17 +19,12 @@ export function NumberKeypad({
   disabled = false,
 }: NumberKeypadProps) {
   const { playKeypadTap } = useSoundEffects();
-
-  // Haptic feedback (if supported)
-  const triggerHaptic = () => {
-    if ("vibrate" in navigator) {
-      navigator.vibrate(10); // Light haptic feedback
-    }
-  };
+  const { vibrateKeypadTap, vibrateButtonClick } = useHaptic();
 
   const handleButtonPress = async (
     action: () => void,
     playSound: boolean = true,
+    hapticType: "keypad" | "button" = "keypad",
   ) => {
     if (disabled) return;
 
@@ -37,8 +33,12 @@ export function NumberKeypad({
       await playKeypadTap();
     }
 
-    // Trigger haptic feedback
-    triggerHaptic();
+    // Trigger appropriate haptic feedback
+    if (hapticType === "keypad") {
+      vibrateKeypadTap();
+    } else {
+      vibrateButtonClick();
+    }
 
     // Execute the action
     action();
@@ -56,12 +56,14 @@ export function NumberKeypad({
     className = "",
     variant = "number",
     playSound = true,
+    hapticType = "keypad",
   }: {
     children: React.ReactNode;
     onClick: () => void;
     className?: string;
     variant?: "number" | "action";
     playSound?: boolean;
+    hapticType?: "keypad" | "button";
   }) => (
     <motion.button
       variants={buttonVariants}
@@ -69,7 +71,7 @@ export function NumberKeypad({
       whileHover="hover"
       whileTap="pressed"
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
-      onClick={() => handleButtonPress(onClick, playSound)}
+      onClick={() => handleButtonPress(onClick, playSound, hapticType)}
       disabled={disabled}
       className={`
         relative h-12 rounded-xl font-bold text-lg
@@ -114,6 +116,7 @@ export function NumberKeypad({
           onClick={onBackspace}
           variant="action"
           className="bg-gray-500 border-gray-600 hover:bg-gray-600 active:bg-gray-700"
+          hapticType="button"
         >
           <Delete className="h-5 w-5" />
         </KeypadButton>
@@ -125,6 +128,7 @@ export function NumberKeypad({
           variant="action"
           className="bg-green-500 border-green-600 hover:bg-green-600 active:bg-green-700"
           playSound={false}
+          hapticType="button"
         >
           <Check className="h-5 w-5" />
         </KeypadButton>
