@@ -22,15 +22,12 @@ export interface SoundEffect {
 export type SoundId =
   | "correct-answer"
   | "incorrect-answer"
-  | "perfect-session"
-  | "timeout"
   | "button-click"
   | "keypad-tap"
   | "session-start"
   | "timer-warning"
   | "timer-critical"
-  | "achievement-unlock"
-  | "page-transition";
+  | "achievement-unlock";
 
 class AudioManager {
   private audioContext: AudioContext | null = null;
@@ -58,18 +55,6 @@ class AudioManager {
       src: "/audio/incorrect.mp3",
       category: "feedback",
       volume: 0.6,
-    },
-    "perfect-session": {
-      id: "perfect-session",
-      src: "/audio/perfect.mp3",
-      category: "achievement",
-      volume: 0.9,
-    },
-    timeout: {
-      id: "timeout",
-      src: "/audio/timeout.mp3",
-      category: "feedback",
-      volume: 0.5,
     },
     "button-click": {
       id: "button-click",
@@ -107,12 +92,6 @@ class AudioManager {
       category: "achievement",
       volume: 0.8,
     },
-    "page-transition": {
-      id: "page-transition",
-      src: "/audio/transition.mp3",
-      category: "interface",
-      volume: 0.3,
-    },
   };
 
   constructor() {
@@ -132,13 +111,12 @@ class AudioManager {
         this.audioContext = new AudioContext();
       }
 
-      // Skip preloading sounds for now - we'll use generated audio
-      // TODO: Enable this when we have actual audio files
-      // await this.preloadSounds();
+      // Preload actual audio files now that we have them
+      await this.preloadSounds();
 
       this.isInitialized = true;
       console.log(
-        "Audio system initialized successfully (using generated audio)",
+        "Audio system initialized successfully (using real audio files)",
       );
     } catch (error) {
       console.warn("Failed to initialize audio system:", error);
@@ -198,11 +176,6 @@ class AudioManager {
   async play(soundId: SoundId): Promise<void> {
     if (!this.shouldPlaySound(soundId)) return;
 
-    // For now, we don't have audio files loaded, so we'll indicate this should use fallback
-    // TODO: Enable file-based audio when we have the files
-    throw new Error(`Audio file not available for ${soundId}, using fallback`);
-
-    /* TODO: Enable this when we have audio files
     const audio = this.sounds.get(soundId);
     if (!audio) {
       console.warn(`Sound not found: ${soundId}`);
@@ -212,17 +185,16 @@ class AudioManager {
     try {
       // Reset the audio to the beginning
       audio.currentTime = 0;
-      
+
       // Update volume in case settings changed
       const effect = this.soundEffects[soundId];
       audio.volume = this.calculateVolume(effect);
-      
+
       await audio.play();
     } catch (error) {
       // Ignore play failures (common on mobile without user interaction)
       console.debug(`Failed to play sound ${soundId}:`, error);
     }
-    */
   }
 
   /**

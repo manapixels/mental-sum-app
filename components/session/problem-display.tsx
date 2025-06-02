@@ -122,57 +122,44 @@ export function ProblemDisplay({
             <div className="text-4xl sm:text-5xl font-bold font-mono text-muted-foreground flex items-center justify-center gap-3">
               <span>=</span>
 
-              {/* Check if we're on mobile */}
-              {typeof window !== "undefined" && window.innerWidth < 768 ? (
-                // Mobile: Show answer display
-                <div className="min-w-[120px] px-4 py-2 text-3xl sm:text-4xl font-bold text-center text-blue-600 bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center">
-                  {userAnswer || "?"}
-                </div>
-              ) : (
-                // Desktop: Show input field
-                <div className="min-w-[120px]">
-                  <AnswerInput
-                    value={userAnswer}
-                    onChange={onAnswerChange}
-                    onKeyPress={onKeyPress}
-                    disabled={disabled}
-                    placeholder="?"
-                  />
-                </div>
-              )}
+              {/* Mobile Answer Display */}
+              <div className="min-w-[120px] px-4 py-2 text-3xl sm:text-4xl font-bold text-center text-blue-600 bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center md:hidden">
+                {userAnswer || "?"}
+              </div>
+
+              {/* Desktop Answer Input */}
+              <div className="min-w-[120px] hidden md:block">
+                <AnswerInput
+                  value={userAnswer}
+                  onChange={onAnswerChange}
+                  onKeyPress={onKeyPress}
+                  disabled={disabled}
+                  placeholder="?"
+                />
+              </div>
             </div>
 
             {/* Desktop Submit Button */}
-            {typeof window !== "undefined" && window.innerWidth >= 768 && (
-              <div className="flex justify-center mt-4">
-                <Button
-                  onClick={onSubmit}
-                  disabled={
-                    !userAnswer.trim() || disabled || feedbackType !== null
-                  }
-                  size="lg"
-                  className="px-8 h-12"
-                >
-                  Submit Answer
-                </Button>
-              </div>
-            )}
+            <div className="hidden md:flex justify-center mt-4">
+              <Button
+                onClick={onSubmit}
+                disabled={
+                  !userAnswer.trim() || disabled || feedbackType !== null
+                }
+                size="lg"
+                className="px-8 h-12"
+              >
+                Submit Answer
+              </Button>
+            </div>
           </div>
 
-          {/* Mobile Number Keypad or Feedback */}
-          {typeof window !== "undefined" && window.innerWidth < 768 && (
-            <div className="mt-6">
-              {/* Fixed height container to prevent layout shifts */}
-              <div className="min-h-[280px] flex items-center justify-center">
-                {feedbackType ? (
-                  <AnswerFeedback
-                    type={feedbackType}
-                    correctAnswer={problem.correctAnswer}
-                    userAnswer={userAnswer ? parseInt(userAnswer) : undefined}
-                    onComplete={onFeedbackComplete}
-                    compact={true}
-                  />
-                ) : (
+          {/* Answer Feedback - Universal (all screen sizes) */}
+          <div className="mt-6 w-full">
+            <div className="w-full min-h-[280px] md:min-h-0 items-center justify-center">
+              {/* Mobile Number Keypad */}
+              <div className="md:hidden">
+                {!feedbackType && (
                   <NumberKeypad
                     onNumberPress={onNumberPress}
                     onBackspace={onBackspace}
@@ -181,8 +168,18 @@ export function ProblemDisplay({
                   />
                 )}
               </div>
+              {feedbackType && (
+                <AnswerFeedback
+                  key={`${problem.id}-${feedbackType}`}
+                  type={feedbackType}
+                  correctAnswer={problem.correctAnswer}
+                  userAnswer={userAnswer ? parseInt(userAnswer) : undefined}
+                  onComplete={onFeedbackComplete}
+                  playSound={true}
+                />
+              )}
             </div>
-          )}
+          </div>
 
           {/* Strategy hint */}
           {showStrategy && problem.strategyCategory && (

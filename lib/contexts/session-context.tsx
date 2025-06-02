@@ -25,6 +25,7 @@ interface SessionContextType {
   pauseSession: () => void;
   resumeSession: () => void;
   endSession: () => void;
+  clearSession: () => void;
   nextProblem: () => void;
   getSessionProgress: () => {
     completed: number;
@@ -349,6 +350,15 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     };
   }, [isActive, isPaused, timeRemaining, handleTimeUp]);
 
+  const clearSession = useCallback(() => {
+    setCurrentSession(null);
+    setProblemIndex(0);
+    setTimeRemaining(30);
+    setIsActive(false);
+    setIsPaused(false);
+    setHasTimedOut(false);
+  }, []);
+
   const value: SessionContextType = {
     currentSession,
     currentProblem,
@@ -362,6 +372,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     pauseSession,
     resumeSession,
     endSession,
+    clearSession,
     nextProblem,
     getSessionProgress,
     clearTimeout,

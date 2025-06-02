@@ -8,12 +8,12 @@ import { SessionProgress } from "./session-progress";
 import { SessionTimer } from "./session-timer";
 import { SessionControls } from "./session-controls";
 import { SessionResults } from "./session-results";
-import { AnswerFeedback } from "./answer-feedback";
 import { SessionCelebration } from "./session-celebration";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSession } from "@/lib/contexts/session-context";
 import { useUser } from "@/lib/contexts/user-context";
+import { useSoundEffects } from "@/lib/hooks/use-audio";
 import { ArrowLeft, Play } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 
@@ -22,6 +22,7 @@ type FeedbackType = "correct" | "incorrect" | "timeout" | null;
 export function SessionInterface() {
   const router = useRouter();
   const { currentUser } = useUser();
+  const { playSessionStart } = useSoundEffects();
   const {
     currentSession,
     currentProblem,
@@ -34,19 +35,57 @@ export function SessionInterface() {
     getSessionProgress,
     nextProblem,
     clearTimeout,
+    clearSession,
   } = useSession();
 
   const [userAnswer, setUserAnswer] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [feedbackType, setFeedbackType] = useState<FeedbackType>(null);
-  const [feedbackData, setFeedbackData] = useState<{
-    correctAnswer?: number;
-    userAnswer?: number;
-  }>({});
 
   // Track when we're expecting a natural session completion
   const sessionJustCompletedRef = useRef(false);
+  // Track if this is a fresh page load to handle cleanup
+  const isInitialLoadRef = useRef(true);
+  // Track if session start sound has been played
+  const sessionStartSoundPlayedRef = useRef(false);
+
+  // IMMEDIATE redirect check - prevents UI flash
+  useEffect(() => {
+    if (!currentUser) {
+      router.replace("/");
+      return;
+    }
+  }, [currentUser, router]);
+
+  // Clean up any stale session data on fresh page loads
+  useEffect(() => {
+    if (isInitialLoadRef.current) {
+      isInitialLoadRef.current = false;
+
+      // If we have an active session on page load, it means this is a refresh
+      // Clear the session to prevent stale data issues
+      if (currentSession && isActive) {
+        clearSession();
+      }
+
+      // Reset all local state
+      setUserAnswer("");
+      setShowResults(false);
+      setShowCelebration(false);
+      setFeedbackType(null);
+      sessionJustCompletedRef.current = false;
+      sessionStartSoundPlayedRef.current = false;
+    }
+  }, [currentSession, isActive, clearSession]);
+
+  // Play session start sound when session becomes active
+  useEffect(() => {
+    if (isActive && currentSession && !sessionStartSoundPlayedRef.current) {
+      sessionStartSoundPlayedRef.current = true;
+      playSessionStart();
+    }
+  }, [isActive, currentSession, playSessionStart]);
 
   // Watch for timeout
   useEffect(() => {
@@ -58,21 +97,9 @@ export function SessionInterface() {
       !currentSession.completed
     ) {
       setFeedbackType("timeout");
-      setFeedbackData({
-        correctAnswer: currentProblem.correctAnswer,
-        userAnswer: undefined,
-      });
       clearTimeout(); // Clear the timeout flag
     }
   }, [hasTimedOut, currentProblem, isActive, currentSession, clearTimeout]);
-
-  // Redirect if no user
-  useEffect(() => {
-    if (!currentUser) {
-      router.push("/");
-      return;
-    }
-  }, [currentUser, router]);
 
   // Auto-start session if no current session
   useEffect(() => {
@@ -96,20 +123,21 @@ export function SessionInterface() {
     }
   }, [currentSession, showCelebration, showResults]);
 
+  // Early return if no user - prevents any UI rendering before redirect
+  if (!currentUser) {
+    return null; // Return nothing instead of loading spinner to prevent flash
+  }
+
   const handleSubmitAnswer = () => {
     const answer = parseInt(userAnswer.trim());
 
     if (!isNaN(answer) && currentProblem) {
       const isCorrect = answer === currentProblem.correctAnswer;
 
-      // Set feedback type and data
+      // Set feedback type
       const newFeedbackType = isCorrect ? "correct" : "incorrect";
 
       setFeedbackType(newFeedbackType);
-      setFeedbackData({
-        correctAnswer: currentProblem.correctAnswer,
-        userAnswer: answer,
-      });
 
       // Submit the answer (this will handle the session logic)
       submitAnswer(answer);
@@ -119,7 +147,6 @@ export function SessionInterface() {
 
   const handleFeedbackComplete = () => {
     setFeedbackType(null);
-    setFeedbackData({});
 
     // Clear the answer when moving to next question
     setUserAnswer("");
@@ -195,7 +222,6 @@ export function SessionInterface() {
               setShowResults(false);
               setShowCelebration(false);
               setFeedbackType(null);
-              setFeedbackData({});
               setUserAnswer("");
               sessionJustCompletedRef.current = false;
               startSession();
@@ -287,16 +313,6 @@ export function SessionInterface() {
           session={currentSession}
           show={showCelebration}
           onComplete={handleCelebrationComplete}
-        />
-      )}
-
-      {/* Answer Feedback Overlay - Only for desktop */}
-      {typeof window !== "undefined" && window.innerWidth >= 768 && (
-        <AnswerFeedback
-          type={feedbackType}
-          correctAnswer={feedbackData.correctAnswer}
-          userAnswer={feedbackData.userAnswer}
-          onComplete={handleFeedbackComplete}
         />
       )}
 

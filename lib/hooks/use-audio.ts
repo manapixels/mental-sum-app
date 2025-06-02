@@ -35,28 +35,77 @@ export interface UseAudioReturn {
   initialize: () => Promise<void>;
 }
 
+// Global initialization state to share across all hook instances
+let globalAudioInitialized = false;
+let initializationPromise: Promise<void> | null = null;
+
+// Global audio initialization function
+const initializeGlobalAudio = async (): Promise<void> => {
+  if (globalAudioInitialized) return;
+
+  if (initializationPromise) {
+    await initializationPromise;
+    return;
+  }
+
+  initializationPromise = (async () => {
+    try {
+      await initializeAudio();
+      globalAudioInitialized = true;
+      console.log("Audio globally initialized");
+    } catch (error) {
+      console.warn("Failed to globally initialize audio:", error);
+      throw error;
+    } finally {
+      initializationPromise = null;
+    }
+  })();
+
+  await initializationPromise;
+};
+
+// Auto-initialize on first interaction at app level
+if (typeof window !== "undefined") {
+  const handleFirstInteraction = async () => {
+    await initializeGlobalAudio();
+    // Remove listeners after initialization
+    document.removeEventListener("click", handleFirstInteraction);
+    document.removeEventListener("touchstart", handleFirstInteraction);
+    document.removeEventListener("keydown", handleFirstInteraction);
+  };
+
+  document.addEventListener("click", handleFirstInteraction, { passive: true });
+  document.addEventListener("touchstart", handleFirstInteraction, {
+    passive: true,
+  });
+  document.addEventListener("keydown", handleFirstInteraction, {
+    passive: true,
+  });
+}
+
 export function useAudio(): UseAudioReturn {
   const [settings, setSettings] = useState<AudioSettings>(getAudioSettings());
   const [isReady, setIsReady] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(
+    () => globalAudioInitialized,
+  );
 
-  // Initialize audio system on first user interaction
+  // Use global initialization only
   const initialize = useCallback(async () => {
-    if (isInitialized) return;
-
-    try {
-      await initializeAudio();
-      setIsReady(isAudioReady());
-      setIsInitialized(true);
-    } catch (error) {
-      console.warn("Failed to initialize audio:", error);
-    }
-  }, [isInitialized]);
+    await initializeGlobalAudio();
+    setIsInitialized(true);
+  }, []);
 
   // Play sound with fallback to generated audio
   const handlePlaySound = useCallback(
     async (soundId: SoundId) => {
       if (!settings.soundEnabled) return;
+
+      // Ensure audio is initialized (use global initialization only)
+      if (!globalAudioInitialized) {
+        await initializeGlobalAudio();
+        setIsInitialized(true);
+      }
 
       try {
         // Try to play the actual sound file
@@ -69,15 +118,12 @@ export function useAudio(): UseAudioReturn {
         const fallbackMap: Record<SoundId, Parameters<typeof playEffect>[0]> = {
           "correct-answer": "success",
           "incorrect-answer": "error",
-          "perfect-session": "success",
-          timeout: "warning",
           "button-click": "click",
           "keypad-tap": "click",
           "session-start": "notification",
           "timer-warning": "warning",
           "timer-critical": "warning",
           "achievement-unlock": "success",
-          "page-transition": "notification",
         };
 
         const fallbackEffect = fallbackMap[soundId];
@@ -93,6 +139,13 @@ export function useAudio(): UseAudioReturn {
   const playFallbackEffect = useCallback(
     async (effect: Parameters<typeof playEffect>[0]) => {
       if (!settings.soundEnabled) return;
+
+      // Ensure audio is initialized (use global initialization only)
+      if (!globalAudioInitialized) {
+        await initializeGlobalAudio();
+        setIsInitialized(true);
+      }
+
       await playEffect(effect);
     },
     [settings.soundEnabled],
@@ -107,48 +160,21 @@ export function useAudio(): UseAudioReturn {
     [],
   );
 
-  // Auto-initialize on first interaction (when component mounts)
-  useEffect(() => {
-    // Set up one-time initialization listener
-    const handleFirstInteraction = () => {
-      initialize();
-      // Remove listeners after first initialization
-      document.removeEventListener("click", handleFirstInteraction);
-      document.removeEventListener("touchstart", handleFirstInteraction);
-      document.removeEventListener("keydown", handleFirstInteraction);
-    };
-
-    // Only add listeners if not already initialized
-    if (!isInitialized) {
-      document.addEventListener("click", handleFirstInteraction, {
-        passive: true,
-      });
-      document.addEventListener("touchstart", handleFirstInteraction, {
-        passive: true,
-      });
-      document.addEventListener("keydown", handleFirstInteraction, {
-        passive: true,
-      });
-    }
-
-    return () => {
-      document.removeEventListener("click", handleFirstInteraction);
-      document.removeEventListener("touchstart", handleFirstInteraction);
-      document.removeEventListener("keydown", handleFirstInteraction);
-    };
-  }, [initialize, isInitialized]);
-
   // Update ready state when audio system changes
   useEffect(() => {
     const checkReady = () => {
       setIsReady(isAudioReady());
+      // Sync with global state
+      if (globalAudioInitialized && !isInitialized) {
+        setIsInitialized(true);
+      }
     };
 
     // Check periodically (audio context might change state)
     const interval = setInterval(checkReady, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isInitialized]);
 
   return {
     playSound: handlePlaySound,
@@ -157,7 +183,7 @@ export function useAudio(): UseAudioReturn {
     updateSettings: handleUpdateSettings,
     isReady,
     isSupported: isAudioSupported(),
-    isInitialized,
+    isInitialized: globalAudioInitialized,
     initialize,
   };
 }
@@ -169,17 +195,19 @@ export function useSoundEffects() {
   return {
     playCorrect: () => playSound("correct-answer"),
     playIncorrect: () => playSound("incorrect-answer"),
-    playPerfect: () => playSound("perfect-session"),
-    playTimeout: () => playSound("timeout"),
     playClick: () => playSound("button-click"),
     playKeypadTap: () => playSound("keypad-tap"),
     playSessionStart: () => playSound("session-start"),
     playTimerWarning: () => playSound("timer-warning"),
     playTimerCritical: () => playSound("timer-critical"),
     playAchievement: () => playSound("achievement-unlock"),
-    playTransition: () => playSound("page-transition"),
 
-    // Fallback effects
+    // Fallback effects for missing sounds
+    playTimeout: () => playFallbackEffect("warning"),
+    playPerfect: () => playFallbackEffect("success"),
+    playTransition: () => playFallbackEffect("notification"),
+
+    // Direct fallback effects
     playSuccess: () => playFallbackEffect("success"),
     playError: () => playFallbackEffect("error"),
     playWarning: () => playFallbackEffect("warning"),

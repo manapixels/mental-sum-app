@@ -26,11 +26,16 @@ export function NumberKeypad({
     }
   };
 
-  const handleButtonPress = async (action: () => void) => {
+  const handleButtonPress = async (
+    action: () => void,
+    playSound: boolean = true,
+  ) => {
     if (disabled) return;
 
-    // Play sound effect
-    await playKeypadTap();
+    // Play sound effect only if requested
+    if (playSound) {
+      await playKeypadTap();
+    }
 
     // Trigger haptic feedback
     triggerHaptic();
@@ -50,11 +55,13 @@ export function NumberKeypad({
     onClick,
     className = "",
     variant = "number",
+    playSound = true,
   }: {
     children: React.ReactNode;
     onClick: () => void;
     className?: string;
     variant?: "number" | "action";
+    playSound?: boolean;
   }) => (
     <motion.button
       variants={buttonVariants}
@@ -62,7 +69,7 @@ export function NumberKeypad({
       whileHover="hover"
       whileTap="pressed"
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
-      onClick={() => handleButtonPress(onClick)}
+      onClick={() => handleButtonPress(onClick, playSound)}
       disabled={disabled}
       className={`
         relative h-12 rounded-xl font-bold text-lg
@@ -117,6 +124,7 @@ export function NumberKeypad({
           onClick={onSubmit}
           variant="action"
           className="bg-green-500 border-green-600 hover:bg-green-600 active:bg-green-700"
+          playSound={false}
         >
           <Check className="h-5 w-5" />
         </KeypadButton>

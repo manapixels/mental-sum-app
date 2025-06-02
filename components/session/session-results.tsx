@@ -122,7 +122,7 @@ export function SessionResults({
       {/* Operation Breakdown */}
       <Card className="py-4">
         <CardHeader>
-          <CardTitle className="text-lg">Performance by Operation</CardTitle>
+          <CardTitle className="text-lg">Performance</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -145,16 +145,13 @@ export function SessionResults({
                     className="flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium capitalize">
+                      <span className="text-lg font-medium capitalize">
                         {operation}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        ({opProblems.length} problems)
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span
-                        className={`text-sm font-medium ${getPerformanceColor(opAccuracy)}`}
+                        className={`text-lg font-medium ${getPerformanceColor(opAccuracy)}`}
                       >
                         {opAccuracy}%
                       </span>

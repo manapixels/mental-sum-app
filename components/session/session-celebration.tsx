@@ -1,9 +1,10 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Trophy, Star, Zap } from "lucide-react";
 import { Session } from "@/lib/types";
+import { useSoundEffects } from "@/lib/hooks/use-audio";
 
 interface SessionCelebrationProps {
   session: Session;
@@ -16,6 +17,7 @@ export function SessionCelebration({
   show,
   onComplete,
 }: SessionCelebrationProps) {
+  const { playAchievement, playPerfect, playSuccess } = useSoundEffects();
   const [confettiPieces, setConfettiPieces] = useState<
     Array<{
       id: number;
@@ -26,35 +28,10 @@ export function SessionCelebration({
     }>
   >([]);
 
-  // Generate confetti pieces
-  useEffect(() => {
-    if (show) {
-      const pieces = Array.from({ length: 50 }, (_, i) => ({
-        id: i,
-        color: [
-          "#10B981",
-          "#3B82F6",
-          "#F59E0B",
-          "#EF4444",
-          "#8B5CF6",
-          "#F97316",
-        ][i % 6],
-        x: Math.random() * 100,
-        delay: Math.random() * 2,
-        duration: 2 + Math.random() * 2,
-      }));
-      setConfettiPieces(pieces);
+  // Track if celebration sound has been played to prevent loops
+  const soundPlayedRef = useRef(false);
 
-      // Auto-dismiss after celebration
-      const timer = setTimeout(() => {
-        onComplete();
-      }, 4000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [show, onComplete]);
-
-  // Calculate performance metrics
+  // Calculate performance metrics (needed early for sound selection)
   const accuracy =
     session.problems.length > 0
       ? Math.round((session.totalCorrect / session.problems.length) * 100)
@@ -75,6 +52,57 @@ export function SessionCelebration({
     if (accuracy >= 80) return Trophy;
     return Zap;
   };
+
+  // Generate confetti pieces and play celebration sound
+  useEffect(() => {
+    if (show) {
+      const pieces = Array.from({ length: 50 }, (_, i) => ({
+        id: i,
+        color: [
+          "#10B981",
+          "#3B82F6",
+          "#F59E0B",
+          "#EF4444",
+          "#8B5CF6",
+          "#F97316",
+        ][i % 6],
+        x: Math.random() * 100,
+        delay: Math.random() * 2,
+        duration: 2 + Math.random() * 2,
+      }));
+      setConfettiPieces(pieces);
+
+      // Play celebration sound only once
+      if (!soundPlayedRef.current) {
+        soundPlayedRef.current = true;
+
+        const playCelebrationSound = async () => {
+          if (accuracy === 100) {
+            // Perfect score - special sound
+            await playPerfect();
+          } else if (accuracy >= 80) {
+            // Great performance - achievement sound
+            await playAchievement();
+          } else {
+            // General completion - success sound
+            await playSuccess();
+          }
+        };
+
+        playCelebrationSound();
+      }
+
+      // Auto-dismiss after celebration
+      const timer = setTimeout(() => {
+        onComplete();
+      }, 4000);
+
+      return () => clearTimeout(timer);
+    } else {
+      // Reset sound played flag when not showing
+      soundPlayedRef.current = false;
+    }
+  }, [show, onComplete, accuracy]); // Removed sound functions from dependencies
 
   if (!show) return null;
 
