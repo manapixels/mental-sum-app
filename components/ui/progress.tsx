@@ -11,6 +11,8 @@ function Progress({
   value,
   ...props
 }: React.ComponentProps<typeof ProgressPrimitive.Root>) {
+  const progressValue = Math.max(0, Math.min(100, value || 0));
+
   return (
     <ProgressPrimitive.Root
       data-slot="progress"
@@ -22,8 +24,8 @@ function Progress({
     >
       <ProgressPrimitive.Indicator
         data-slot="progress-indicator"
-        className="h-full w-full flex-1 overflow-hidden rounded-full"
-        style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+        className="bg-gray-700 h-full w-full flex-1 overflow-hidden rounded-full"
+        style={{ transform: `translateX(-${100 - progressValue}%)` }}
       >
         <motion.div
           className="bg-primary h-full w-full"
@@ -31,7 +33,7 @@ function Progress({
           animate={{
             width: "100%",
             background:
-              value && value > 80
+              progressValue > 80
                 ? "linear-gradient(90deg, hsl(var(--primary)), #10b981)"
                 : undefined,
           }}
@@ -42,7 +44,7 @@ function Progress({
           }}
           style={{
             background:
-              value && value > 80
+              progressValue > 80
                 ? "linear-gradient(90deg, hsl(var(--primary)), #10b981)"
                 : "hsl(var(--primary))",
           }}

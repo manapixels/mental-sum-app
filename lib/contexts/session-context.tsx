@@ -281,12 +281,15 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       return { completed: 0, total: 0, percentage: 0 };
     }
 
-    const completed = problemIndex + (currentProblem?.completedAt ? 1 : 0);
+    // Count actually completed problems from the session
+    const completed = currentSession.problems.filter(
+      (p) => p.completedAt,
+    ).length;
     const total = currentSession.sessionLength;
     const percentage = total > 0 ? (completed / total) * 100 : 0;
 
     return { completed, total, percentage };
-  }, [currentSession, problemIndex, currentProblem]);
+  }, [currentSession]);
 
   const clearTimeout = useCallback(() => {
     setHasTimedOut(false);

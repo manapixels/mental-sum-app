@@ -18,41 +18,6 @@ export function SessionProgress({
   const [displayPercentage, setDisplayPercentage] = useState(0);
   const [prevCurrent, setPrevCurrent] = useState(current);
   const [shouldPulse, setShouldPulse] = useState(false);
-  const [foregroundColor, setForegroundColor] = useState("#000000");
-
-  // Get computed foreground color for animations
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const updateForegroundColor = () => {
-        const root = document.documentElement;
-        const computedStyle = getComputedStyle(root);
-        const foregroundHSL = computedStyle
-          .getPropertyValue("--foreground")
-          .trim();
-
-        // Convert HSL to a format Framer Motion can animate
-        // For light mode this is typically something like "0 0% 3.9%"
-        // For dark mode this is typically something like "0 0% 98%"
-        if (foregroundHSL) {
-          // Parse the HSL values and create a proper HSL string
-          const [h, s, l] = foregroundHSL.split(" ");
-          const hslString = `hsl(${h}, ${s}, ${l})`;
-          setForegroundColor(hslString);
-        }
-      };
-
-      updateForegroundColor();
-
-      // Update on theme changes
-      const observer = new MutationObserver(updateForegroundColor);
-      observer.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ["class", "data-theme"],
-      });
-
-      return () => observer.disconnect();
-    }
-  }, []);
 
   // Animate percentage changes
   useEffect(() => {
@@ -81,7 +46,10 @@ export function SessionProgress({
           animate={shouldPulse ? { scale: [1, 1.05, 1] } : {}}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <Progress value={displayPercentage} className="w-full h-2" />
+          <Progress
+            value={displayPercentage}
+            className="w-full h-3 min-w-[100px]"
+          />
         </motion.div>
 
         {/* Animated Counter */}
@@ -91,7 +59,7 @@ export function SessionProgress({
             shouldPulse
               ? {
                   scale: [1, 1.1, 1],
-                  color: [foregroundColor, "#10b981", foregroundColor],
+                  color: ["#000000", "#10b981", "#000000"],
                 }
               : {}
           }
@@ -105,7 +73,7 @@ export function SessionProgress({
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
             >
-              {current} / {total}
+              {current + 1} / {total}
             </motion.span>
           </AnimatePresence>
         </motion.div>
