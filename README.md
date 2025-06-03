@@ -38,7 +38,7 @@ This set of features enhances the learning experience by providing detailed insi
 - **Strategy-Specific Performance Tracking:** The app now tracks user performance (accuracy, attempts) for various mental math strategies (e.g., "Bridging to 10s" for addition, "Times 5" for multiplication).
 - **Adaptive Problem Selection:** An intelligent algorithm selects problems by prioritizing strategies where the user is weaker, based on accuracy and number of attempts. This ensures practice is focused where it's needed most.
 - **Focused Practice Mode:** Users can choose to practice a specific mental math strategy. This can be accessed from the new Progress page.
-- **Progress Dashboard (`/progress`):**
+- **Progress Dashboard (`/`):**
   - Displays overall user statistics (total problems, accuracy, streaks, average time, etc.).
   - Provides a detailed breakdown of performance for each mental math strategy, showing accuracy, attempts, and a visual progress bar.
 - \*\*Review Mistakes (`/review`):

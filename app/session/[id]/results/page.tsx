@@ -52,7 +52,7 @@ export default function SessionResultsPage() {
           not have permission to view it.
         </p>
         <Button asChild>
-          <Link href={currentUser ? "/progress" : "/"}>
+          <Link href={"/"}>
             {currentUser ? "View Your Progress" : "Go Home"}
           </Link>
         </Button>

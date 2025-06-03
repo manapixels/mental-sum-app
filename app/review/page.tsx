@@ -86,7 +86,7 @@ export default function ReviewPage() {
 
   return (
     <MainLayout>
-      <div className="mb-8 text-center sm:text-left">
+      <div className="mb-8">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
           Review Past Sessions
         </h1>
@@ -106,7 +106,7 @@ export default function ReviewPage() {
           return (
             <Card
               key={session.id}
-              className={`overflow-hidden ${isReviewNeeded ? "border-red-500/50 dark:border-red-700/60" : ""}`}
+              className={`gap-2 overflow-hidden ${isReviewNeeded ? "border-red-500/50 dark:border-red-700/60" : ""}`}
             >
               <CardHeader
                 className={`p-4 sm:p-6 ${isReviewNeeded ? "bg-red-500/5 dark:bg-red-900/10" : "bg-muted/20"}`}
@@ -132,7 +132,7 @@ export default function ReviewPage() {
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 text-sm">
+              <CardContent className="px-4 py-0 sm:p-6 grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   {session.totalCorrect === session.problems.length &&
                   session.problems.length > 0 ? (
@@ -179,14 +179,6 @@ export default function ReviewPage() {
                 >
                   <ListChecks className="mr-2 h-4 w-4" />
                   Review Session
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => router.push(`/session/${session.id}/results`)}
-                  className="w-full sm:w-auto"
-                >
-                  <Eye className="mr-2 h-4 w-4" />
-                  View Details
                 </Button>
               </CardFooter>
             </Card>

@@ -147,9 +147,7 @@ export function UserStrategyProgressList() {
   return (
     <>
       <div className="space-y-6">
-        <h2 className="text-xl font-semibold tracking-tight">
-          Your Skill Progress
-        </h2>
+        <h2 className="text-xl font-semibold tracking-tight">Skill Progress</h2>
         {problemHistory &&
           problemHistory.length === 0 &&
           Object.values(strategyPerformance).every(
