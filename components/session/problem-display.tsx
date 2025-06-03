@@ -2,13 +2,19 @@
 
 import { Problem } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus, X, Divide } from "lucide-react";
+import { Lightbulb } from "lucide-react";
 import { AnswerInput } from "./answer-input";
 import { NumberKeypad } from "./number-keypad";
 import { AnswerFeedback } from "./answer-feedback";
 import { motion } from "framer-motion";
+import { getConciseStrategyHint } from "@/lib/strategies";
+import { useState } from "react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface ProblemDisplayProps {
   problem: Problem;
@@ -39,6 +45,8 @@ export function ProblemDisplay({
   disabled = false,
   feedbackType,
 }: ProblemDisplayProps) {
+  const [isHintOpen, setIsHintOpen] = useState(false);
+
   const getOperationSymbol = (operation: string) => {
     switch (operation) {
       case "addition":
@@ -51,21 +59,6 @@ export function ProblemDisplay({
         return "÷";
       default:
         return "+";
-    }
-  };
-
-  const getOperationIcon = (operation: string) => {
-    switch (operation) {
-      case "addition":
-        return <Plus className="h-4 w-4 text-green-600" />;
-      case "subtraction":
-        return <Minus className="h-4 w-4 text-red-600" />;
-      case "multiplication":
-        return <X className="h-4 w-4 text-blue-600" />;
-      case "division":
-        return <Divide className="h-4 w-4 text-purple-600" />;
-      default:
-        return <Plus className="h-4 w-4 text-green-600" />;
     }
   };
 
@@ -94,29 +87,17 @@ export function ProblemDisplay({
       className="w-full max-w-md"
     >
       <Card className="w-full max-w-md border-0 shadow-none">
-        <CardContent className="p-6 sm:p-8">
-          {/* Operation type badge */}
-          <div className="flex items-center justify-center mb-6">
-            <Badge
-              variant="secondary"
-              className="flex items-center gap-1 text-sm"
-            >
-              {getOperationIcon(problem.operation)}
-              {problem.operation.charAt(0).toUpperCase() +
-                problem.operation.slice(1)}
-            </Badge>
-          </div>
-
+        <CardContent className="p-0">
           {/* Math problem with integrated answer */}
           <div className="text-center space-y-6">
             <div className="text-4xl sm:text-5xl md:text-6xl font-bold font-mono tracking-wide">
-              <span>{problem.operand1}</span>
+              <span>{problem.operands[0]}</span>
               <span
-                className={`mx-3 sm:mx-4 ${getOperationColor(problem.operation)}`}
+                className={`mx-3 sm:mx-4 ${getOperationColor(problem.type)}`}
               >
-                {getOperationSymbol(problem.operation)}
+                {getOperationSymbol(problem.type)}
               </span>
-              <span>{problem.operand2}</span>
+              <span>{problem.operands[1]}</span>
             </div>
 
             <div className="text-4xl sm:text-5xl font-bold font-mono text-muted-foreground flex items-center justify-center gap-3">
@@ -181,48 +162,44 @@ export function ProblemDisplay({
             </div>
           </div>
 
-          {/* Strategy hint */}
-          {showStrategy && problem.strategyCategory && (
-            <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-              <div className="text-sm font-medium text-muted-foreground mb-1">
-                💡 Strategy Hint:
+          {/* Collapsible Strategy Hint */}
+          {showStrategy && problem.intendedStrategy && (
+            <Collapsible
+              open={isHintOpen}
+              onOpenChange={setIsHintOpen}
+              className="mt-6 w-full px-4 sm:px-6"
+            >
+              <div className="flex justify-start">
+                {" "}
+                {/* Align button to the left or center as preferred */}
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2 text-sm"
+                  >
+                    <Lightbulb className="h-4 w-4" />
+                    <span>{isHintOpen ? "Hide Hint" : "Show Hint"}</span>
+                  </Button>
+                </CollapsibleTrigger>
               </div>
-              <div className="text-sm">{getStrategyHint(problem)}</div>
-            </div>
+              <CollapsibleContent className="mt-3">
+                <div className="p-3 bg-muted/30 rounded-md border">
+                  {" "}
+                  {/* Slightly less emphasis than original bg-muted/50 */}
+                  <div className="text-xs font-medium text-muted-foreground mb-1 flex items-center">
+                    {/* The lightbulb icon was already in the original text, keeping it for consistency */}
+                    Strategy Suggestion:
+                  </div>
+                  <div className="text-sm">
+                    {getConciseStrategyHint(problem)}
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           )}
         </CardContent>
       </Card>
     </motion.div>
   );
-}
-
-function getStrategyHint(problem: Problem): string {
-  switch (problem.strategyCategory) {
-    case "bridging-to-tens":
-      return `Try making ${problem.operand2} a round number like ${Math.ceil(problem.operand2 / 10) * 10}, then adjust.`;
-
-    case "doubles":
-      return `Notice how close these numbers are! Use doubling strategies.`;
-
-    case "times-9":
-      return `For × 9: multiply by 10, then subtract the original number.`;
-
-    case "times-5":
-      return `For × 5: multiply by 10, then divide by 2.`;
-
-    case "times-11":
-      return `For × 11: write the number twice, then add the middle digits.`;
-
-    case "compensation":
-      return `Round ${problem.operand2} to make it easier, then adjust your answer.`;
-
-    case "adding-up":
-      return `Try counting up from ${problem.operand2} to ${problem.operand1}.`;
-
-    case "factor-recognition":
-      return `Look for familiar multiplication facts in this division.`;
-
-    default:
-      return `Take your time and work step by step.`;
-  }
 }

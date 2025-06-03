@@ -7,8 +7,8 @@ import React, {
   useState,
   useCallback,
 } from "react";
-import { Problem, Session } from "@/lib/types";
-import { ProblemGenerator } from "@/lib/problem-generator";
+import { Problem, Session, StrategyId, UserStatistics } from "@/lib/types";
+import { ProblemEngine } from "@/lib/problem-engine";
 import { StorageManager } from "@/lib/storage";
 import { useUser } from "./user-context";
 
@@ -20,7 +20,7 @@ interface SessionContextType {
   isActive: boolean;
   isPaused: boolean;
   hasTimedOut: boolean;
-  startSession: () => void;
+  startSession: (options?: { focusedStrategyId?: StrategyId | null }) => void;
   submitAnswer: (answer: number) => void;
   pauseSession: () => void;
   resumeSession: () => void;
@@ -33,20 +33,25 @@ interface SessionContextType {
     percentage: number;
   };
   clearTimeout: () => void;
+  focusedStrategyId: StrategyId | null;
+  setFocusedStrategy: (strategyId: StrategyId | null) => void;
 }
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
-  const { currentUser, updateUser } = useUser();
+  const { currentUser, updateUser, logProblemAttempt, updateStrategyMetrics } =
+    useUser();
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
   const [problemIndex, setProblemIndex] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(30);
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [hasTimedOut, setHasTimedOut] = useState(false);
+  const [focusedStrategyId, setFocusedStrategyId] = useState<StrategyId | null>(
+    null,
+  );
 
-  // Automatic pause/resume based on window focus
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -81,57 +86,72 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const currentProblem = currentSession?.problems[problemIndex] || null;
 
-  const startSession = useCallback(() => {
-    if (!currentUser) return;
+  const startSession = useCallback(
+    (options?: { focusedStrategyId?: StrategyId | null }) => {
+      if (!currentUser) return;
 
-    // Immediately clear any existing session to prevent UI glitches
-    setCurrentSession(null);
-    setIsActive(false);
-    setIsPaused(false);
-    setHasTimedOut(false);
+      const actualFocusIdForEngine =
+        options?.focusedStrategyId !== undefined
+          ? options.focusedStrategyId
+          : options
+            ? null
+            : focusedStrategyId;
 
-    try {
-      // Generate problems based on user preferences
-      const problems = ProblemGenerator.generateSession(
-        currentUser,
-        currentUser.preferences.sessionLength,
-      );
-
-      // Create new session
-      const session: Session = {
-        id: crypto.randomUUID(),
-        userId: currentUser.id,
-        startTime: new Date(),
-        problems: problems,
-        completed: false,
-        totalCorrect: 0,
-        totalWrong: 0,
-        averageTime: 0,
-        sessionLength: problems.length,
-      };
-
-      setCurrentSession(session);
-      setProblemIndex(0);
-      setTimeRemaining(currentUser.preferences.timeLimit || 30);
-      setIsActive(true);
+      setCurrentSession(null);
+      setIsActive(false);
       setIsPaused(false);
       setHasTimedOut(false);
+      setProblemIndex(0);
 
-      // Save session to storage
-      StorageManager.createSession({
-        userId: currentUser.id,
-        startTime: new Date(),
-        problems: problems,
-        completed: false,
-        totalCorrect: 0,
-        totalWrong: 0,
-        averageTime: 0,
-        sessionLength: problems.length,
-      });
-    } catch (error) {
-      console.error("Error starting session:", error);
-    }
-  }, [currentUser]);
+      try {
+        const problems: Problem[] = [];
+        const sessionLength = currentUser.preferences.sessionLength;
+        for (let i = 0; i < sessionLength; i++) {
+          const problem = ProblemEngine.generateProblem(
+            currentUser.preferences,
+            currentUser.statistics as UserStatistics,
+            actualFocusIdForEngine,
+          );
+          if (problem) {
+            problems.push(problem);
+          } else {
+            console.warn(
+              "Failed to generate a problem, session might be shorter.",
+            );
+          }
+        }
+
+        if (problems.length === 0) {
+          console.error("Could not generate any problems for the session.");
+          return;
+        }
+
+        const newSessionData: Omit<Session, "id"> = {
+          userId: currentUser.id,
+          startTime: new Date(),
+          problems: problems,
+          completed: false,
+          totalCorrect: 0,
+          totalWrong: 0,
+          averageTime: 0,
+          sessionLength: problems.length,
+        };
+
+        const persistedSession = StorageManager.createSession(newSessionData);
+
+        setCurrentSession(persistedSession);
+        setTimeRemaining(currentUser.preferences.timeLimit || 30);
+        setIsActive(true);
+        setIsPaused(false);
+        setHasTimedOut(false);
+      } catch (error) {
+        console.error("Error starting session:", error);
+        setIsActive(false);
+        setCurrentSession(null);
+      }
+    },
+    [currentUser, focusedStrategyId],
+  );
 
   const updateProblemInSession = useCallback(
     (updatedProblem: Problem) => {
@@ -155,13 +175,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const submitAnswer = useCallback(
     (answer: number) => {
-      if (!currentProblem || !currentSession) return;
+      if (!currentProblem || !currentSession || !currentUser) return;
 
       const isCorrect = answer === currentProblem.correctAnswer;
-      const timeLimit = currentUser?.preferences.timeLimit || 30;
-      const timeSpent = timeLimit - timeRemaining;
+      const timeLimit = currentUser.preferences.timeLimit || 30;
+      const timeSpent = Math.max(0, timeLimit - timeRemaining);
 
-      const updatedProblem: Problem = {
+      const completedProblem: Problem = {
         ...currentProblem,
         userAnswer: answer,
         isCorrect,
@@ -169,9 +189,14 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         completedAt: new Date(),
       };
 
-      updateProblemInSession(updatedProblem);
+      updateProblemInSession(completedProblem);
 
-      // Don't automatically advance - let the feedback component handle timing
+      logProblemAttempt(completedProblem);
+      updateStrategyMetrics(
+        completedProblem.intendedStrategy,
+        isCorrect,
+        timeSpent,
+      );
     },
     [
       currentProblem,
@@ -179,6 +204,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       timeRemaining,
       currentUser,
       updateProblemInSession,
+      logProblemAttempt,
+      updateStrategyMetrics,
     ],
   );
 
@@ -191,176 +218,148 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const endSession = useCallback(() => {
-    if (!currentSession || !currentUser) return;
+    if (!currentSession || !currentUser || !updateUser) return;
 
-    // Calculate session statistics
     const completedProblems = currentSession.problems.filter(
       (p) => p.completedAt,
     );
     const correctAnswers = completedProblems.filter((p) => p.isCorrect).length;
-    const totalTime = completedProblems.reduce(
-      (sum, p) => sum + p.timeSpent,
+    const totalTimeSpentOnCompleted = completedProblems.reduce(
+      (sum, p) => sum + (p.timeSpent || 0),
       0,
     );
     const averageTime =
-      completedProblems.length > 0 ? totalTime / completedProblems.length : 0;
+      completedProblems.length > 0
+        ? totalTimeSpentOnCompleted / completedProblems.length
+        : 0;
 
-    // Update session
     const finalSession: Session = {
       ...currentSession,
       endTime: new Date(),
       completed: true,
       totalCorrect: correctAnswers,
       totalWrong: completedProblems.length - correctAnswers,
-      averageTime,
+      averageTime: averageTime,
     };
 
     setCurrentSession(finalSession);
+
     StorageManager.updateSession(finalSession.id, {
-      endTime: new Date(),
-      completed: true,
-      totalCorrect: correctAnswers,
-      totalWrong: completedProblems.length - correctAnswers,
-      averageTime,
+      endTime: finalSession.endTime,
+      completed: finalSession.completed,
+      totalCorrect: finalSession.totalCorrect,
+      totalWrong: finalSession.totalWrong,
+      averageTime: finalSession.averageTime,
+      problems: finalSession.problems,
     });
 
-    // Update user statistics
-    const updatedStats = { ...currentUser.statistics };
-    updatedStats.totalProblems += completedProblems.length;
-    updatedStats.correctAnswers += correctAnswers;
-    updatedStats.wrongAnswers += completedProblems.length - correctAnswers;
-    updatedStats.totalSessions += 1;
-    updatedStats.lastSessionDate = new Date();
+    const oldUserStats = currentUser.statistics;
+    const updatedGlobalStats: Partial<UserStatistics> = {
+      totalProblems:
+        (oldUserStats.totalProblems || 0) + completedProblems.length,
+      correctAnswers: (oldUserStats.correctAnswers || 0) + correctAnswers,
+      wrongAnswers:
+        (oldUserStats.wrongAnswers || 0) +
+        (completedProblems.length - correctAnswers),
+      totalSessions: (oldUserStats.totalSessions || 0) + 1,
+      lastSessionDate: new Date(),
+    };
 
-    // Calculate new average time
-    const totalProblemsWithTime = updatedStats.totalProblems;
-    const newTotalTime =
-      updatedStats.averageTimePerProblem *
-        (totalProblemsWithTime - completedProblems.length) +
-      totalTime;
-    updatedStats.averageTimePerProblem =
-      totalProblemsWithTime > 0 ? newTotalTime / totalProblemsWithTime : 0;
+    const prevTotalProblemsWithTime =
+      (oldUserStats.totalProblems || 0) -
+      (oldUserStats.problemHistory?.filter(
+        (p) => p.completedAt && p.timeSpent === undefined,
+      ).length || 0);
+    const prevTotalTimeSpent =
+      (oldUserStats.averageTimePerProblem || 0) * prevTotalProblemsWithTime;
+    const currentSessionTotalTime = totalTimeSpentOnCompleted;
+    const newTotalProblemsWithTime =
+      prevTotalProblemsWithTime + completedProblems.length;
+    updatedGlobalStats.averageTimePerProblem =
+      newTotalProblemsWithTime > 0
+        ? (prevTotalTimeSpent + currentSessionTotalTime) /
+          newTotalProblemsWithTime
+        : 0;
 
-    // Update streak
-    if (correctAnswers === completedProblems.length) {
-      updatedStats.currentStreak += 1;
-      updatedStats.bestStreak = Math.max(
-        updatedStats.bestStreak,
-        updatedStats.currentStreak,
-      );
-    } else {
-      updatedStats.currentStreak = 0;
+    if (
+      correctAnswers === completedProblems.length &&
+      completedProblems.length > 0
+    ) {
+      updatedGlobalStats.currentStreak = (oldUserStats.currentStreak || 0) + 1;
+    } else if (completedProblems.length > 0) {
+      updatedGlobalStats.currentStreak = 0;
     }
+    updatedGlobalStats.bestStreak = Math.max(
+      oldUserStats.bestStreak || 0,
+      updatedGlobalStats.currentStreak || 0,
+    );
 
-    // Update operation-specific stats
-    completedProblems.forEach((problem) => {
-      const opStats = updatedStats.operationStats[problem.operation];
-      opStats.attempted += 1;
-      if (problem.isCorrect) {
-        opStats.correct += 1;
-      }
-      opStats.averageTime =
-        (opStats.averageTime * (opStats.attempted - 1) + problem.timeSpent) /
-        opStats.attempted;
-      opStats.fastestTime =
-        opStats.fastestTime === 0
-          ? problem.timeSpent
-          : Math.min(opStats.fastestTime, problem.timeSpent);
+    updateUser(currentUser.id, {
+      statistics: updatedGlobalStats as UserStatistics,
     });
 
-    updateUser(currentUser.id, { statistics: updatedStats });
-
-    // Stop the session
     setIsActive(false);
     setIsPaused(false);
-    setHasTimedOut(false);
   }, [currentSession, currentUser, updateUser]);
 
-  const getSessionProgress = useCallback(() => {
-    if (!currentSession) {
-      return { completed: 0, total: 0, percentage: 0 };
+  const nextProblem = useCallback(() => {
+    if (!currentSession || !isActive || isPaused) return;
+
+    if (problemIndex < currentSession.problems.length - 1) {
+      setProblemIndex((prev) => prev + 1);
+      setTimeRemaining(currentUser?.preferences.timeLimit || 30);
+      setHasTimedOut(false);
+    } else {
+      endSession();
     }
+  }, [
+    currentSession,
+    isActive,
+    isPaused,
+    problemIndex,
+    currentUser,
+    endSession,
+  ]);
 
-    // Count actually completed problems from the session
-    const completed = currentSession.problems.filter(
-      (p) => p.completedAt,
-    ).length;
+  const getSessionProgress = useCallback(() => {
+    if (!currentSession) return { completed: 0, total: 0, percentage: 0 };
+    const completed = problemIndex + (currentProblem?.completedAt ? 1 : 0);
     const total = currentSession.sessionLength;
-    const percentage = total > 0 ? (completed / total) * 100 : 0;
-
-    return { completed, total, percentage };
-  }, [currentSession]);
+    return {
+      completed,
+      total,
+      percentage: total > 0 ? (completed / total) * 100 : 0,
+    };
+  }, [currentSession, problemIndex, currentProblem]);
 
   const clearTimeout = useCallback(() => {
     setHasTimedOut(false);
   }, []);
 
-  const nextProblem = useCallback(() => {
-    if (!currentSession) return;
-
-    // Clear timeout flag for next problem
-    setHasTimedOut(false);
-
-    if (problemIndex < currentSession.problems.length - 1) {
-      // Move to next problem
-      setProblemIndex((prev) => prev + 1);
-      setTimeRemaining(currentUser?.preferences.timeLimit || 30);
-    } else {
-      // Session complete
-      endSession();
-    }
-  }, [currentSession, problemIndex, currentUser, endSession]);
-
-  const handleTimeUp = useCallback(() => {
-    if (!currentProblem) return;
-
-    // Set timeout flag for UI feedback
-    setHasTimedOut(true);
-
-    // Mark as incorrect due to timeout
-    const timeLimit = currentUser?.preferences.timeLimit || 30;
-    const updatedProblem: Problem = {
-      ...currentProblem,
-      userAnswer: -1, // Special value to indicate timeout
-      isCorrect: false,
-      timeSpent: timeLimit,
-      completedAt: new Date(),
-    };
-
-    updateProblemInSession(updatedProblem);
-    // Don't auto-advance here - let the UI handle it
-  }, [currentProblem, currentUser, updateProblemInSession]);
-
-  // Timer effect
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-
-    if (isActive && !isPaused && timeRemaining > 0) {
-      interval = setInterval(() => {
-        setTimeRemaining((time) => {
-          if (time <= 1) {
-            // Time's up - automatically submit current answer as wrong
-            handleTimeUp();
-            return 0;
-          }
-          return time - 1;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isActive, isPaused, timeRemaining, handleTimeUp]);
-
   const clearSession = useCallback(() => {
     setCurrentSession(null);
     setProblemIndex(0);
-    setTimeRemaining(30);
     setIsActive(false);
     setIsPaused(false);
     setHasTimedOut(false);
   }, []);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isActive && !isPaused && !currentProblem?.completedAt && !hasTimedOut) {
+      timer = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            setHasTimedOut(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [isActive, isPaused, currentProblem, hasTimedOut]);
 
   const value: SessionContextType = {
     currentSession,
@@ -379,6 +378,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     nextProblem,
     getSessionProgress,
     clearTimeout,
+    focusedStrategyId,
+    setFocusedStrategy: setFocusedStrategyId,
   };
 
   return (

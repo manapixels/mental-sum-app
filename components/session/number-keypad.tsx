@@ -93,7 +93,7 @@ export function NumberKeypad({
   );
 
   return (
-    <div className="w-full max-w-xs mx-auto">
+    <div className="w-full max-w-sm mx-auto">
       {/* Keypad Grid */}
       <div className="grid grid-cols-3 gap-3 p-4 bg-gray-50 rounded-2xl border-2 border-gray-200">
         {/* Row 1: 1, 2, 3 */}

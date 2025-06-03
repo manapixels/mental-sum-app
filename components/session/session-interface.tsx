@@ -2,12 +2,11 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { MainLayout } from "@/components/layout/main-layout";
+import { SessionLayout } from "@/components/layout/session-layout";
 import { ProblemDisplay } from "./problem-display";
 import { SessionProgress } from "./session-progress";
 import { SessionTimer } from "./session-timer";
 import { SessionControls } from "./session-controls";
-import { SessionResults } from "./session-results";
 import { SessionCelebration } from "./session-celebration";
 import { SoundToggleButton } from "./sound-toggle-button";
 import { Button } from "@/components/ui/button";
@@ -43,20 +42,14 @@ export function SessionInterface() {
   } = useSession();
 
   const [userAnswer, setUserAnswer] = useState("");
-  const [showResults, setShowResults] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [feedbackType, setFeedbackType] = useState<FeedbackType>(null);
 
-  // Track when we're expecting a natural session completion
   const sessionJustCompletedRef = useRef(false);
-  // Track if this is a fresh page load to handle cleanup
   const isInitialLoadRef = useRef(true);
-  // Track if session start sound has been played
   const sessionStartSoundPlayedRef = useRef(false);
-  // Track timer warnings to prevent duplicate vibrations
   const timerWarningTriggeredRef = useRef<Set<number>>(new Set());
 
-  // IMMEDIATE redirect check - prevents UI flash
   useEffect(() => {
     if (!currentUser) {
       router.replace("/");
@@ -66,31 +59,24 @@ export function SessionInterface() {
 
   const handleCelebrationComplete = useCallback(() => {
     setShowCelebration(false);
-    setShowResults(true);
-  }, []); // Empty dependency array makes it stable
+    if (currentSession?.id) {
+      router.push(`/session/${currentSession.id}/results`);
+    }
+  }, [router, currentSession]);
 
-  // Number keypad handlers
   const handleNumberPress = (number: string) => {
     if (feedbackType === null) {
-      // Only allow input when not showing feedback
       setUserAnswer((prev) => prev + number);
     }
   };
 
-  // Clean up any stale session data on fresh page loads
   useEffect(() => {
     if (isInitialLoadRef.current) {
       isInitialLoadRef.current = false;
-
-      // If we have an active session on page load, it means this is a refresh
-      // Clear the session to prevent stale data issues
       if (currentSession && isActive) {
         clearSession();
       }
-
-      // Reset all local state
       setUserAnswer("");
-      setShowResults(false);
       setShowCelebration(false);
       setFeedbackType(null);
       sessionJustCompletedRef.current = false;
@@ -98,7 +84,6 @@ export function SessionInterface() {
     }
   }, [currentSession, isActive, clearSession]);
 
-  // Play session start sound when session becomes active
   useEffect(() => {
     if (isActive && currentSession && !sessionStartSoundPlayedRef.current) {
       sessionStartSoundPlayedRef.current = true;
@@ -106,7 +91,6 @@ export function SessionInterface() {
     }
   }, [isActive, currentSession, playSessionStart]);
 
-  // Watch for timeout
   useEffect(() => {
     if (
       hasTimedOut &&
@@ -116,42 +100,34 @@ export function SessionInterface() {
       !currentSession.completed
     ) {
       setFeedbackType("timeout");
-      clearTimeout(); // Clear the timeout flag
+      clearTimeout();
     }
   }, [hasTimedOut, currentProblem, isActive, currentSession, clearTimeout]);
 
-  // Auto-start session if no current session
   useEffect(() => {
     if (currentUser && !currentSession && !isActive) {
-      // Reset celebration and results state when starting a new session
       setShowCelebration(false);
-      setShowResults(false);
       sessionJustCompletedRef.current = false;
       startSession();
     }
   }, [currentUser, currentSession, isActive, startSession]);
 
-  // Show celebration when session naturally completes
   useEffect(() => {
-    if (currentSession?.completed && !showCelebration && !showResults) {
-      // Only show celebration if this session just completed naturally
-      if (sessionJustCompletedRef.current) {
-        setShowCelebration(true);
-        sessionJustCompletedRef.current = false; // Reset the flag
-      }
+    if (
+      currentSession?.completed &&
+      !isActive &&
+      !showCelebration &&
+      currentSession.id
+    ) {
+      router.push(`/session/${currentSession.id}/results`);
     }
-  }, [currentSession, showCelebration, showResults]);
+  }, [currentSession, isActive, showCelebration, router]);
 
-  // Timer warning haptic feedback
   useEffect(() => {
     if (!isActive || isPaused || !currentSession) return;
-
-    // Reset warnings when moving to a new problem
     if (timeRemaining === (currentUser?.preferences.timeLimit || 30)) {
       timerWarningTriggeredRef.current.clear();
     }
-
-    // Trigger haptic feedback at specific time thresholds
     if (timeRemaining === 10 && !timerWarningTriggeredRef.current.has(10)) {
       vibrateTimerWarning();
       timerWarningTriggeredRef.current.add(10);
@@ -172,25 +148,17 @@ export function SessionInterface() {
     vibrateTimerCritical,
   ]);
 
-  // Early return if no user - prevents any UI rendering before redirect
   if (!currentUser) {
-    return null; // Return nothing instead of loading spinner to prevent flash
+    return null;
   }
 
   const handleSubmitAnswer = () => {
     const answer = parseInt(userAnswer.trim());
-
     if (!isNaN(answer) && currentProblem) {
       const isCorrect = answer === currentProblem.correctAnswer;
-
-      // Set feedback type
       const newFeedbackType = isCorrect ? "correct" : "incorrect";
-
       setFeedbackType(newFeedbackType);
-
-      // Submit the answer (this will handle the session logic)
       submitAnswer(answer);
-      // Don't clear the answer here - wait until feedback completes
     }
   };
 
@@ -198,15 +166,19 @@ export function SessionInterface() {
     setFeedbackType(null);
     setUserAnswer("");
 
-    if (currentSession && problemIndex === currentSession.problems.length - 1) {
-      // Last problem: show celebration and then formally end session
+    if (
+      currentSession &&
+      currentSession.problems.length > 0 &&
+      problemIndex >= currentSession.problems.length - 1 &&
+      !currentSession.completed
+    ) {
+      sessionJustCompletedRef.current = true;
       setShowCelebration(true);
-      // Delay ending session slightly to allow celebration UI to kick in
-      setTimeout(() => {
-        nextProblem(); // This will call endSession()
-      }, 100);
+      nextProblem();
+    } else if (currentSession && currentSession.completed) {
+      sessionJustCompletedRef.current = true;
+      setShowCelebration(true);
     } else {
-      // Not the last problem: advance to next problem
       setTimeout(() => {
         nextProblem();
       }, 100);
@@ -225,7 +197,6 @@ export function SessionInterface() {
     }
   };
 
-  // Desktop keyboard handler
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && userAnswer.trim()) {
       handleSubmitAnswer();
@@ -234,46 +205,22 @@ export function SessionInterface() {
 
   const progress = getSessionProgress();
 
-  // Loading state
   if (!currentUser) {
     return (
-      <MainLayout>
+      <SessionLayout>
         <div className="flex items-center justify-center min-h-[50vh]">
           <div className="text-center space-y-2">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
             <p className="text-muted-foreground">Loading session...</p>
           </div>
         </div>
-      </MainLayout>
+      </SessionLayout>
     );
   }
 
-  // Show results screen
-  if (showResults && currentSession) {
-    return (
-      <MainLayout>
-        <div className="max-w-2xl mx-auto">
-          <SessionResults
-            session={currentSession}
-            onBackToHome={() => router.push("/")}
-            onNewSession={() => {
-              setShowResults(false);
-              setShowCelebration(false);
-              setFeedbackType(null);
-              setUserAnswer("");
-              sessionJustCompletedRef.current = false;
-              startSession();
-            }}
-          />
-        </div>
-      </MainLayout>
-    );
-  }
-
-  // Session not started state (but don't show this if we have a completed session)
   if ((!currentSession || !isActive) && !currentSession?.completed) {
     return (
-      <MainLayout>
+      <SessionLayout>
         <div className="max-w-2xl mx-auto">
           <Card className="p-6 sm:p-8">
             <CardContent className="text-center space-y-6">
@@ -286,11 +233,9 @@ export function SessionInterface() {
                   you
                 </p>
               </div>
-
               <div className="animate-pulse flex justify-center">
                 <Play className="h-8 w-8 text-primary" />
               </div>
-
               <Button
                 variant="outline"
                 onClick={() => router.push("/")}
@@ -302,15 +247,13 @@ export function SessionInterface() {
             </CardContent>
           </Card>
         </div>
-      </MainLayout>
+      </SessionLayout>
     );
   }
 
-  // Active session state
   return (
-    <MainLayout>
+    <SessionLayout>
       <div className="max-w-2xl mx-auto space-y-2 sm:space-y-4 pb-16">
-        {/* Compact Header with progress */}
         <div className="flex justify-center py-2">
           <SessionProgress
             current={progress.completed}
@@ -318,8 +261,6 @@ export function SessionInterface() {
             percentage={progress.percentage}
           />
         </div>
-
-        {/* Problem display with integrated answer input */}
         <div className="flex justify-center py-2">
           {currentProblem && (
             <AnimatePresence>
@@ -340,15 +281,9 @@ export function SessionInterface() {
             </AnimatePresence>
           )}
         </div>
-
-        {/* Compact Session controls */}
         <SessionControls />
       </div>
-
-      {/* Sound Toggle Button */}
       <SoundToggleButton />
-
-      {/* Session Celebration */}
       {currentSession && (
         <SessionCelebration
           session={currentSession}
@@ -356,9 +291,7 @@ export function SessionInterface() {
           onComplete={handleCelebrationComplete}
         />
       )}
-
-      {/* Bottom Timer Progress Bar */}
       <SessionTimer />
-    </MainLayout>
+    </SessionLayout>
   );
 }

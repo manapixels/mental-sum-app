@@ -25,7 +25,7 @@ export function SessionControls() {
 
   return (
     <>
-      <div className="flex justify-center">
+      <div className="flex justify-center fixed bottom-4 right-4">
         <Button
           variant="outline"
           size="default"

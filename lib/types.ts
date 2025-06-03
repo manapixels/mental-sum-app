@@ -20,6 +20,7 @@ export interface UserPreferences {
   timeLimit: number; // seconds per problem
   showStrategies: boolean; // show strategy hints during sessions
   enableSound: boolean; // enable audio feedback
+  enableHaptics?: boolean;
   numberRanges: {
     addition: { min: number; max: number };
     subtraction: { min: number; max: number };
@@ -43,6 +44,8 @@ export interface UserStatistics {
   lastSessionDate?: Date;
   bestStreak: number;
   currentStreak: number;
+  strategyPerformance: Record<StrategyId, StrategyMetrics>;
+  problemHistory: Problem[];
 }
 
 export interface OperationStats {
@@ -68,14 +71,17 @@ export interface Session {
 
 export interface Problem {
   id: string;
-  operation: "addition" | "subtraction" | "multiplication" | "division";
-  operand1: number;
-  operand2: number;
+  type: "addition" | "subtraction" | "multiplication" | "division";
+  operands: [number, number];
   correctAnswer: number;
+  intendedStrategy: StrategyId;
+  difficulty: "beginner" | "intermediate" | "advanced";
+  timeToSolve?: number;
+  strategyUsed?: string;
+  category?: string;
   userAnswer?: number;
   isCorrect?: boolean;
   timeSpent: number;
-  strategyCategory?: string;
   attemptedAt: Date;
   completedAt?: Date;
 }
@@ -100,6 +106,63 @@ export interface AppData {
   lastBackup?: Date;
 }
 
+// Strategy Performance Types
+export interface StrategyMetrics {
+  correct: number;
+  incorrect: number;
+  totalAttempts: number;
+}
+
+export type StrategyId =
+  | "AdditionBridgingTo10s"
+  | "AdditionDoubles"
+  | "AdditionBreakingApart"
+  | "AdditionLeftToRight"
+  | "SubtractionBridgingDown"
+  | "SubtractionAddingUp"
+  | "SubtractionCompensation"
+  | "MultiplicationDoubling"
+  | "MultiplicationBreakingApart"
+  | "MultiplicationNearSquares"
+  | "MultiplicationTimes5"
+  | "MultiplicationTimes9"
+  | "DivisionFactorRecognition"
+  | "DivisionMultiplicationInverse"
+  | "DivisionEstimationAdjustment";
+
+export const ALL_STRATEGY_IDS: StrategyId[] = [
+  "AdditionBridgingTo10s",
+  "AdditionDoubles",
+  "AdditionBreakingApart",
+  "AdditionLeftToRight",
+  "SubtractionBridgingDown",
+  "SubtractionAddingUp",
+  "SubtractionCompensation",
+  "MultiplicationDoubling",
+  "MultiplicationBreakingApart",
+  "MultiplicationNearSquares",
+  "MultiplicationTimes5",
+  "MultiplicationTimes9",
+  "DivisionFactorRecognition",
+  "DivisionMultiplicationInverse",
+  "DivisionEstimationAdjustment",
+];
+
+export function initializeStrategyPerformance(): Record<
+  StrategyId,
+  StrategyMetrics
+> {
+  const performance = {} as Record<StrategyId, StrategyMetrics>;
+  for (const strategyId of ALL_STRATEGY_IDS) {
+    performance[strategyId] = {
+      correct: 0,
+      incorrect: 0,
+      totalAttempts: 0,
+    };
+  }
+  return performance;
+}
+
 // Default Values
 export const defaultUserPreferences: UserPreferences = {
   enabledOperations: {
@@ -113,6 +176,7 @@ export const defaultUserPreferences: UserPreferences = {
   timeLimit: 30,
   showStrategies: true,
   enableSound: true,
+  enableHaptics: true,
   numberRanges: {
     addition: { min: 1, max: 99 },
     subtraction: { min: 1, max: 99 },
@@ -140,4 +204,6 @@ export const defaultUserStatistics: UserStatistics = {
   },
   bestStreak: 0,
   currentStreak: 0,
+  strategyPerformance: initializeStrategyPerformance(),
+  problemHistory: [],
 };

@@ -116,7 +116,16 @@ export function SessionCelebration({
       // Reset sound played flag when not showing
       soundPlayedRef.current = false;
     }
-  }, [show, accuracy]);
+  }, [
+    show,
+    accuracy,
+    onComplete,
+    playAchievement,
+    playPerfect,
+    playSuccess,
+    vibrateAchievement,
+    vibrateSessionComplete,
+  ]);
 
   if (!show) return null;
 
