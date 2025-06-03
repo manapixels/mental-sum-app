@@ -242,6 +242,64 @@
 
 ---
 
+## Phase 8: Advanced Progress & Adaptive Learning
+
+### Data Model & Persistence
+
+- [ ] Define and implement `strategyPerformance` object in user profile schema (e.g., `{ strategyId: { correct, incorrect, totalAttempts, avgTime } }`).
+- [ ] Define and implement schema for storing individual problem attempt history (e.g., `{ problemDetails, userAnswer, correctAnswer, isCorrect, strategyUsed, timestamp }`).
+- [ ] Update `localStorage` CRUD operations (saveUser, loadUser, etc.) to support new data structures for strategy performance and problem history.
+- [ ] Implement data migration logic for existing users to initialize new data fields (if necessary).
+
+### Problem Generation Engine
+
+- [ ] Design and implement adaptive problem selection algorithm (e.g., using weakness scores based on `strategyPerformance`).
+- [ ] Modify problem generator to accept an optional `focusedStrategyId` parameter to generate problems for a specific strategy.
+- [ ] Ensure all generated problems are tagged with an `intendedStrategy` (or an array of applicable strategies).
+- [ ] Integrate user's `strategyPerformance` data into the adaptive problem selection logic.
+
+### State Management (Contexts)
+
+- [ ] Update `UserContext` to store, manage, and provide `strategyPerformance` and problem attempt history.
+- [ ] Add functions to `UserContext` to:
+
+  - [ ] Log a completed problem attempt to history.
+  - [ ] Update `strategyPerformance` metrics after each problem.
+
+- [ ] Update `SessionContext` to manage an optional `focusedStrategyId` for targeted practice sessions.
+
+### User Interface: Progress Display
+
+- [ ] Create `StrategyProgressCard` component to display metrics for a single mental model strategy.
+- [ ] Create `UserStrategyProgressList` component to display a list of `StrategyProgressCard`s for all applicable strategies.
+
+- [ ] Implement "Practice this Skill" buttons within `StrategyProgressCard` or `UserStrategyProgressList`.
+- [ ] Integrate `UserStrategyProgressList` into a user-facing page (e.g., a new "My Progress" page, or an enhanced User Profile/Session Results page).
+
+### User Interface: Incorrect Answer Review
+
+- [ ] Design UI for displaying a list of past problems, with filters (e.g., show only incorrect, by date, by operation).
+
+- [ ] Create `ProblemReviewCard` component to display details of a single past problem (original problem, user's answer, correct answer, strategy explanation).
+- [ ] Implement a page or modal view for `ProblemReviewCard` list and individual review.
+- [ ] Link to this review system from session results or user progress areas.
+
+### Session Flow Integration
+
+- [ ] Update session logic to log all attempted problems (with relevant details like `intendedStrategy`) to `UserContext`.
+- [ ] Ensure session start logic correctly initializes in adaptive mode (default) or focused strategy mode based on `SessionContext` (`focusedStrategyId`).
+
+### Overall Integration & Testing
+
+- [ ] Thoroughly test the adaptive problem generation logic across various user performance scenarios.
+- [ ] Test the focused strategy practice flow from selection to session completion.
+- [ ] Validate the accuracy of progress tracking for both overall strategy performance and individual problem history.
+- [ ] Perform usability testing on the new progress display and answer review UIs.
+
+**Phase 8 Progress**: 0/19 tasks completed (0%)
+
+---
+
 ## Optional Advanced Features
 
 ### Additional Practice Modes
@@ -308,9 +366,9 @@
 
 ## Summary
 
-**Total Tasks**: 145 tasks
+**Total Tasks**: 164 tasks
 **Completed**: 115 tasks
-**Overall Progress**: 79.3%
+**Overall Progress**: 70.1%
 
 ### Phase Breakdown:
 
@@ -321,9 +379,10 @@
 - **Phase 5**: 16/16 (100%) ✅ - Results & Teaching
 - **Phase 6**: 19/23 (82.6%) ✅ - Enhanced Features
 - **Phase 7**: 39/39 (100%) ✅ - Animations & Audio
+- **Phase 8**: 0/19 (0%) - Advanced Progress & Adaptive Learning (NEW)
+- **Testing**: 0/10 (0%) - Quality Assurance (Previously Phase 8, now 9)
+- **Deployment**: 0/6 (0%) - Final Steps (Previously Phase 9, now 10)
 - **Optional**: 0/15 (0%) - Advanced Features
-- **Testing**: 0/10 (0%) - Quality Assurance
-- **Deployment**: 0/6 (0%) - Final Steps
 
 ---
 

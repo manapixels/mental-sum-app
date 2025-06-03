@@ -33,6 +33,8 @@ A mental math training application designed to help users improve their calculat
   - Average time per problem
   - Performance by operation type
   - Session history
+  - Performance metrics for each mental calculation strategy (accuracy, attempts, average time).
+  - History of attempted problems, including user's answer, correct answer, and strategy used.
 
 ### 2. Customizable Problem Types ✅
 
@@ -96,7 +98,7 @@ A mental math training application designed to help users improve their calculat
 
 - **Default Length**: 10 questions per session
 - **Start Mechanism**: Dedicated "Start" button
-- **Problem Selection**: Random from enabled operation types
+- **Problem Selection**: Random from enabled operation types initially, evolving to adaptive selection.
 - **Timing**: Track time per problem and total session time
 - **Immediate Feedback**: Show correct/incorrect after each answer
 - **Session Summary**:
@@ -104,6 +106,8 @@ A mental math training application designed to help users improve their calculat
   - Time breakdown per problem
   - Overall session time
   - Performance insights
+- **Adaptive Problem Selection**: The system should (internally, without explicit user toggle) prioritize generating problems that target strategies the user is weaker in, based on their performance history. This mechanism should become more influential as the user completes more problems.
+- **Focused Strategy Practice**: Users can initiate training sessions focused on a single mental calculation strategy. These sessions are accessible via links next to their performance score for that specific strategy in their progress view.
 
 ### 6. Educational Feedback System ✅
 
@@ -112,6 +116,10 @@ A mental math training application designed to help users improve their calculat
   - Step-by-step mental strategy for that problem type
   - Alternative approaches if applicable
   - Practice suggestion for similar problems
+- **Post-Session & Historical Review**:
+  - Allow users to review a list of problems from their recent sessions or overall history.
+  - Special focus/filter for problems answered incorrectly.
+  - Display user's answer, the correct solution, and the recommended strategy for each reviewed problem.
 
 ### 7. Animations & Visual Effects 🎨 (Partially Complete)
 
@@ -142,6 +150,8 @@ A mental math training application designed to help users improve their calculat
 - **Perfect Score**: Special celebration animation
 - **Personal Best**: Achievement unlock animation
 - **Streak Milestones**: Trophy or badge animations
+
+#### **Mobile Optimization**: Respect device silent mode
 
 ### 8. Sound Effects & Audio Feedback 🔊 (In Development)
 
@@ -198,9 +208,13 @@ A mental math training application designed to help users improve their calculat
 ### Performance Analytics
 
 - **Progress Tracking**: Visual charts showing improvement over time
-- **Weak Area Detection**: Identify operation types or number ranges where user struggles
+- **Weak Area Detection**: Identify operation types or number ranges where user struggles (expanded by strategy-specific tracking).
 - **Performance Trends**: Daily/weekly/monthly performance summaries
 - **Goal Setting**: Allow users to set target accuracy or speed goals
+- **Strategy-Specific Progress**:
+  - Display detailed progress for each mental math strategy (e.g., "Addition - Bridging to 10s", "Multiplication - Times 5").
+  - Metrics to include: accuracy (correct/attempted), total attempts, average time per problem for that strategy.
+  - Direct links from each strategy's progress display to initiate a "Focused Strategy Practice" session for that specific skill.
 
 ### Practice Modes
 
