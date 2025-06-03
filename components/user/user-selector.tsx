@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, Plus, Loader2 } from "lucide-react";
+import Image from "next/image";
 
 export function UserSelector() {
   const { currentUser, users, setCurrentUser, createUser, isLoading } =
@@ -70,7 +71,7 @@ export function UserSelector() {
   return (
     <div className="flex items-center gap-2">
       <Select value={currentUser?.id || ""} onValueChange={handleUserChange}>
-        <SelectTrigger className="w-[160px] sm:w-[200px] h-10">
+        <SelectTrigger className="w-[130px] sm:w-[160px] h-10">
           <div className="flex items-center gap-2">
             <User className="h-4 w-4" />
             <SelectValue placeholder="Select User" className="text-sm" />
@@ -80,7 +81,6 @@ export function UserSelector() {
           {users.map((user) => (
             <SelectItem key={user.id} value={user.id}>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
                 <span className="font-medium">{user.name}</span>
               </div>
             </SelectItem>
@@ -176,37 +176,35 @@ export function WelcomeScreen() {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && name.trim()) {
-      handleCreateFirstUser();
-    }
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-6 text-center">
         <div className="space-y-2">
-          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-            <User className="h-8 w-8 text-primary" />
-          </div>
-          <h1 className="text-2xl font-bold">Welcome to Mental Sum!</h1>
-          <p className="text-muted-foreground">
-            Let&apos;s get started by creating your user profile.
-          </p>
+          <span className="text-xl font-medium mr-2">welcome to</span>
+          <span className="text-5xl font-bold mb-6">ne.ko</span>
+          <Image
+            src="/neko-hill.jpg"
+            alt="Neko Hill"
+            width={500}
+            height={500}
+            className="rounded-xl w-full"
+          />
         </div>
 
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="welcome-name" className="text-base">
+          <div className="space-y-2 text-center">
+            <Label
+              htmlFor="welcome-name"
+              className="block text-base text-center"
+            >
               What&apos;s your name?
             </Label>
             <Input
               id="welcome-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              onKeyPress={handleKeyPress}
               placeholder="Enter your name"
-              className="h-12 text-base text-center"
+              className="h-12 text-base text-center border-x-3 border-y-5 border-gray-800"
               autoFocus
               maxLength={50}
             />

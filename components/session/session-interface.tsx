@@ -16,7 +16,6 @@ import { useUser } from "@/lib/contexts/user-context";
 import { useSoundEffects } from "@/lib/hooks/use-audio";
 import { ArrowLeft, Play } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
-import { useHaptic } from "@/lib/hooks/use-haptic";
 
 type FeedbackType = "correct" | "incorrect" | "timeout" | null;
 
@@ -24,7 +23,6 @@ export function SessionInterface() {
   const router = useRouter();
   const { currentUser } = useUser();
   const { playSessionStart } = useSoundEffects();
-  const { vibrateTimerWarning, vibrateTimerCritical } = useHaptic();
   const {
     currentSession,
     currentProblem,
@@ -129,24 +127,14 @@ export function SessionInterface() {
       timerWarningTriggeredRef.current.clear();
     }
     if (timeRemaining === 10 && !timerWarningTriggeredRef.current.has(10)) {
-      vibrateTimerWarning();
       timerWarningTriggeredRef.current.add(10);
     } else if (
       timeRemaining === 5 &&
       !timerWarningTriggeredRef.current.has(5)
     ) {
-      vibrateTimerCritical();
       timerWarningTriggeredRef.current.add(5);
     }
-  }, [
-    timeRemaining,
-    isActive,
-    isPaused,
-    currentSession,
-    currentUser,
-    vibrateTimerWarning,
-    vibrateTimerCritical,
-  ]);
+  }, [timeRemaining, isActive, isPaused, currentSession, currentUser]);
 
   if (!currentUser) {
     return null;

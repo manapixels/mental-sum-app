@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { UserProvider } from "@/lib/contexts/user-context";
 import { SessionProvider } from "@/lib/contexts/session-context";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "X-Calc - Mental Math Training App",
+  title: "ne.ko - Mental Math Training",
   description:
     "Improve your mental calculation speed and accuracy through targeted practice sessions.",
 };
@@ -33,6 +34,7 @@ export default function RootLayout({
         <UserProvider>
           <SessionProvider>{children}</SessionProvider>
         </UserProvider>
+        <Toaster />
       </body>
     </html>
   );

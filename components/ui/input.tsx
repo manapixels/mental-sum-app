@@ -28,7 +28,6 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
         className="absolute inset-0 rounded-md"
         initial={{
           boxShadow: "0 0 0 0 rgba(59, 130, 246, 0)",
-          backgroundColor: "rgba(0, 0, 0, 0)",
         }}
         animate={
           isFocused
@@ -38,11 +37,9 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
                   "0 0 0 4px rgba(59, 130, 246, 0.1)",
                   "0 0 20px 4px rgba(59, 130, 246, 0.15)",
                 ],
-                backgroundColor: "rgba(59, 130, 246, 0.05)",
               }
             : {
                 boxShadow: "0 0 0 0 rgba(59, 130, 246, 0)",
-                backgroundColor: "rgba(0, 0, 0, 0)",
               }
         }
         transition={{

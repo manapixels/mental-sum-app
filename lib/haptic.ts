@@ -12,13 +12,10 @@ export type HapticType =
   | "keypadTap"
   | "correctAnswer"
   | "incorrectAnswer"
-  | "timeoutWarning"
   | "sessionComplete"
   | "achievementUnlock"
   | "settingsToggle"
-  | "buttonClick"
-  | "timerWarning"
-  | "timerCritical";
+  | "buttonClick";
 
 class HapticManager {
   private isSupported: boolean = false;
@@ -38,10 +35,6 @@ class HapticManager {
       vibrate: [100, 50, 100],
       description: "Error pattern - double tap with stronger intensity",
     },
-    timeoutWarning: {
-      vibrate: [200, 100, 200],
-      description: "Warning pattern for timeout",
-    },
     sessionComplete: {
       vibrate: [50, 50, 50, 50, 100],
       description: "Success celebration sequence",
@@ -57,14 +50,6 @@ class HapticManager {
     buttonClick: {
       vibrate: 8,
       description: "Minimal feedback for button presses",
-    },
-    timerWarning: {
-      vibrate: [50, 50, 50],
-      description: "Timer warning gentle vibration",
-    },
-    timerCritical: {
-      vibrate: [100, 50, 100, 50, 100],
-      description: "Critical timer alert pattern",
     },
   };
 

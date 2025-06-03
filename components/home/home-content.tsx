@@ -69,15 +69,6 @@ export function HomeContent() {
   return (
     <MainLayout>
       <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
-        {/* Welcome Section */}
-        <div className="text-center space-y-4">
-          <h2 className="text-xl sm:text-4xl font-bold tracking-tight">
-            {currentUser
-              ? `Welcome back, ${currentUser.name}!`
-              : "Train Your Mental Math Skills"}
-          </h2>
-        </div>
-
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-4">
           <Card className="py-2">
@@ -87,7 +78,7 @@ export function HomeContent() {
                 <div className="text-xl sm:text-2xl font-bold">
                   {stats.totalProblems}
                 </div>
-                <div className="text-md sm:text-sm text-muted-foreground">
+                <div className="text-sm sm:text-xs text-muted-foreground">
                   Problems Solved
                 </div>
               </div>
@@ -101,7 +92,7 @@ export function HomeContent() {
                 <div className="text-xl sm:text-2xl font-bold">
                   {accuracyRate}%
                 </div>
-                <div className="text-md sm:text-sm text-muted-foreground">
+                <div className="text-sm sm:text-xs text-muted-foreground">
                   Accuracy Rate
                 </div>
               </div>
@@ -115,7 +106,7 @@ export function HomeContent() {
                 <div className="text-xl sm:text-2xl font-bold">
                   {stats.totalSessions}
                 </div>
-                <div className="text-md sm:text-sm text-muted-foreground">
+                <div className="text-sm sm:text-xs text-muted-foreground">
                   Sessions Completed
                 </div>
               </div>
@@ -125,7 +116,7 @@ export function HomeContent() {
 
         {/* Main Action */}
         <Card className="p-4 sm:p-8 gap-0">
-          <CardHeader className="text-center pb-4 sm:pb-6 px-0">
+          <CardHeader className="pb-4 sm:pb-6 px-0">
             <CardTitle className="text-xl sm:text-2xl">
               Ready to Practice?
             </CardTitle>
@@ -140,8 +131,8 @@ export function HomeContent() {
               </Button>
             </CardAction>
           </CardHeader>
-          <CardContent className="text-center space-y-4 px-0">
-            <div className="flex flex-wrap justify-center gap-2">
+          <CardContent className="text-center space-y-4 px-0 flex flex-row justify-between gap-2">
+            <div className="flex flex-wrap gap-2 mb-0">
               {enabledOperationsList.length > 0 ? (
                 enabledOperationsList.map((op) => (
                   <Badge
@@ -170,51 +161,17 @@ export function HomeContent() {
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
-              <Button
-                size="lg"
-                className="h-12 sm:h-auto px-6 sm:px-8 text-base"
-                onClick={handleStartSession}
-              >
-                <Play className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                Start Session
-              </Button>
-            </div>
+            <Button
+              size="lg"
+              className="h-12 sm:h-auto px-6 sm:px-8 text-base"
+              onClick={handleStartSession}
+            >
+              <Play className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+              Start
+            </Button>
           </CardContent>
         </Card>
 
-        {/* Features Preview */}
-        <div className="grid grid-cols-2 gap-4 sm:gap-6">
-          <Card className="gap-0">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Brain className="h-8 w-8 sm:h-5 sm:w-5" />
-                Smart Learning
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm sm:text-base text-muted-foreground">
-                Get personalized feedback and learn mental calculation
-                strategies when you make mistakes.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="gap-0">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <BarChart3 className="h-8 w-8 sm:h-5 sm:w-5" />
-                Progress Tracking
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm sm:text-base text-muted-foreground">
-                Monitor your improvement over time with detailed analytics and
-                performance insights.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
         {/* Settings Dialog */}
         <SettingsDialog open={showSettings} onOpenChange={setShowSettings} />
       </div>

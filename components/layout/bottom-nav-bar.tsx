@@ -6,7 +6,6 @@ const navItems = [
   { href: "/", label: "Practice", icon: PenLine },
   { href: "/progress", label: "Progress", icon: ChartColumnIncreasing },
   { href: "/review", label: "Review", icon: Album },
-  // { href: '/settings', label: 'Settings', icon: SettingsIcon }, // Example for more items
 ];
 
 export function BottomNavBar() {
@@ -21,14 +20,14 @@ export function BottomNavBar() {
             <Link
               href={item.href}
               key={item.label}
-              className={`inline-flex flex-col items-center justify-center px-2 hover:bg-gray-600 group ${isActive ? "text-primary-foreground bg-primary" : "text-gray-300"}`}
+              className={`inline-flex flex-col items-center justify-center px-2 hover:bg-gray-600 group ${isActive ? "text-primary-foreground bg-gray-800" : "text-gray-300"}`}
             >
               <item.icon
-                className={`w-6 h-6 mb-1 ${isActive ? "text-primary-foreground" : "text-gray-100 group-hover:text-white"}`}
+                className={`w-6 h-6 mb-1 ${isActive ? "text-primary-foreground" : "text-gray-400 group-hover:text-white"}`}
                 aria-hidden="true"
               />
               <span
-                className={`text-xs tracking-wider ${isActive ? "font-semibold text-primary-foreground" : "text-gray-200 group-hover:text-white"}`}
+                className={`text-xs tracking-wider ${isActive ? "font-semibold text-primary-foreground" : "text-gray-400 group-hover:text-white"}`}
               >
                 {item.label}
               </span>

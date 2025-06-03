@@ -120,3 +120,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}

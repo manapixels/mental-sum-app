@@ -69,7 +69,7 @@ export function SessionProgress({
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
             >
-              Question {current + 1}
+              Question {current + 1 > total ? total : current + 1}
             </motion.span>
           </AnimatePresence>
         </motion.div>

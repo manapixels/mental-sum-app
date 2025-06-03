@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,21 +10,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/lib/contexts/user-context";
 import { UserPreferences } from "@/lib/types";
-import { Plus, Minus, Calculator, Brain, Clock, Trophy } from "lucide-react";
-import { AudioSettings } from "@/components/settings/audio-settings";
+import { Plus, Minus, Calculator, Clock } from "lucide-react";
 import { useSoundEffects } from "@/lib/hooks/use-audio";
 import { useHaptic } from "@/lib/hooks/use-haptic";
+import { toast } from "sonner";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -63,13 +56,35 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           },
         },
   );
+  const isInitialMount = useRef(true);
 
-  const handleSave = async () => {
-    if (!currentUser) return;
+  const handleSave = useCallback(async () => {
+    if (!currentUser || !preferences) return false; // Return a boolean to indicate if save happened
+
+    // Perform a simple deep comparison to prevent unnecessary updates
+    // A more robust deep-equality function would be better for production
+    const currentContextPrefs = currentUser.preferences || {};
+    if (JSON.stringify(preferences) === JSON.stringify(currentContextPrefs)) {
+      return false; // No changes to save
+    }
 
     updateUser(currentUser.id, { preferences });
-    onOpenChange(false);
-  };
+    return true; // Save occurred
+  }, [currentUser, preferences, updateUser]);
+
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    if (currentUser) {
+      handleSave().then((saved) => {
+        if (saved) {
+          toast.success("Settings saved successfully!");
+        }
+      });
+    }
+  }, [handleSave, currentUser]);
 
   const updateOperations = (
     operation: keyof typeof preferences.enabledOperations,
@@ -89,6 +104,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   };
 
   const adjustSessionLength = (direction: "up" | "down") => {
+    // Play toggle sound and haptic
+    playSettingsToggle();
+    vibrateSettingsToggle();
+
     setPreferences((prev) => {
       const currentSessionLength = Number(prev.sessionLength) || 10;
       return {
@@ -102,6 +121,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   };
 
   const adjustTimeLimit = (direction: "up" | "down") => {
+    // Play toggle sound and haptic
+    playSettingsToggle();
+    vibrateSettingsToggle();
+
     setPreferences((prev) => {
       const currentTimeLimit = Number(prev.timeLimit) || 30;
       return {
@@ -123,60 +146,13 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5" />
-            Training Settings
+            Settings
           </DialogTitle>
         </DialogHeader>
 
+        <Separator />
+
         <div className="space-y-6">
-          {/* Difficulty Level */}
-          <div className="space-y-3">
-            <Label className="text-base font-medium flex items-center gap-2">
-              <Trophy className="h-4 w-4" />
-              Difficulty Level
-            </Label>
-            <Select
-              value={preferences.difficultyLevel}
-              onValueChange={(
-                value: "beginner" | "intermediate" | "advanced",
-              ) =>
-                setPreferences((prev) => ({ ...prev, difficultyLevel: value }))
-              }
-            >
-              <SelectTrigger className="h-24 w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="beginner">
-                  <div className="flex flex-col items-start">
-                    <span className="font-medium">Beginner</span>
-                    <span className="text-xs text-muted-foreground">
-                      Simple numbers, basic operations
-                    </span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="intermediate">
-                  <div className="flex flex-col items-start">
-                    <span className="font-medium">Intermediate</span>
-                    <span className="text-xs text-muted-foreground">
-                      Two-digit numbers, mixed operations
-                    </span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="advanced">
-                  <div className="flex flex-col items-start">
-                    <span className="font-medium">Advanced</span>
-                    <span className="text-xs text-muted-foreground">
-                      Large numbers, complex calculations
-                    </span>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Separator />
-
           {/* Operations */}
           <div className="space-y-3">
             <Label className="text-base font-medium flex items-center gap-2">
@@ -393,30 +369,6 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               </div>
             </div>
           </div>
-
-          <Separator />
-
-          {/* Audio Settings */}
-          <div className="space-y-3">
-            <Label className="text-base font-medium">Audio Settings</Label>
-            <div className="p-3 rounded-lg border">
-              <AudioSettings />
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-2 pt-4">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            className="flex-1 h-12"
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleSave} className="flex-1 h-12">
-            Save Settings
-          </Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -28,8 +28,6 @@ export interface UseHapticReturn {
   vibrateAchievement: () => void;
   vibrateSettingsToggle: () => void;
   vibrateButtonClick: () => void;
-  vibrateTimerWarning: () => void;
-  vibrateTimerCritical: () => void;
 }
 
 export function useHaptic(): UseHapticReturn {
@@ -85,14 +83,6 @@ export function useHaptic(): UseHapticReturn {
     () => vibrate("buttonClick"),
     [vibrate],
   );
-  const vibrateTimerWarning = useCallback(
-    () => vibrate("timerWarning"),
-    [vibrate],
-  );
-  const vibrateTimerCritical = useCallback(
-    () => vibrate("timerCritical"),
-    [vibrate],
-  );
 
   return {
     vibrate,
@@ -106,7 +96,5 @@ export function useHaptic(): UseHapticReturn {
     vibrateAchievement,
     vibrateSettingsToggle,
     vibrateButtonClick,
-    vibrateTimerWarning,
-    vibrateTimerCritical,
   };
 }
