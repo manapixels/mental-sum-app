@@ -174,7 +174,7 @@ export function SessionResults({
             {["addition", "subtraction", "multiplication", "division"].map(
               (operation) => {
                 const opProblems = completedProblems.filter(
-                  (p) => p.operation === operation,
+                  (p) => p.type === operation,
                 );
                 const opCorrect = opProblems.filter((p) => p.isCorrect).length;
                 const opAccuracy =
