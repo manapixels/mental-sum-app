@@ -82,7 +82,7 @@ export function PracticeInitializer() {
 
           <Button
             size="lg"
-            className="h-12 sm:h-auto px-6 sm:px-8 text-base"
+            className="h-12 sm:h-auto px-6 sm:px-8 text-base bg-gray-800"
             onClick={handleStartSession}
           >
             <Play className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />

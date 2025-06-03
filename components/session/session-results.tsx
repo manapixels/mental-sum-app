@@ -214,7 +214,7 @@ export function SessionResults({
         <Button
           onClick={onNewSession}
           size="lg"
-          className="flex-1 h-12 sm:h-auto px-6 sm:px-8 text-base"
+          className="flex-1 h-12 sm:h-auto px-6 sm:px-8 text-base bg-gray-800"
         >
           <RotateCcw className="mr-2 h-4 w-4" />
           New Session

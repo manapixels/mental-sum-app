@@ -74,7 +74,7 @@ export function NumberKeypad({
       onClick={() => handleButtonPress(onClick, playSound, hapticType)}
       disabled={disabled}
       className={`
-        relative h-12 rounded-xl font-bold text-lg
+        relative h-14 rounded-xl font-bold text-xl
         transition-all duration-150
         active:shadow-inner
         disabled:opacity-50 disabled:cursor-not-allowed
