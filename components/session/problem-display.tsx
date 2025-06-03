@@ -91,13 +91,13 @@ export function ProblemDisplay({
           {/* Math problem with integrated answer */}
           <div className="text-center space-y-6">
             <div className="text-4xl sm:text-5xl md:text-6xl font-bold font-mono tracking-wide">
-              <span>{problem.operands[0]}</span>
+              <span>{problem.operands[0].toLocaleString()}</span>
               <span
                 className={`mx-3 sm:mx-4 ${getOperationColor(problem.type)}`}
               >
                 {getOperationSymbol(problem.type)}
               </span>
-              <span>{problem.operands[1]}</span>
+              <span>{problem.operands[1].toLocaleString()}</span>
             </div>
 
             <div className="text-4xl sm:text-5xl font-bold font-mono text-muted-foreground flex items-center justify-center gap-3">

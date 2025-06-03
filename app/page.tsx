@@ -7,6 +7,7 @@ import { useUser } from "@/lib/contexts/user-context";
 import { MainLayout } from "@/components/layout/main-layout";
 import { PracticeInitializer } from "@/components/home/practice-initializer";
 import { WelcomeScreen } from "@/components/user/user-selector";
+import { Separator } from "@/components/ui/separator";
 
 export default function HomePage() {
   const { currentUser, users, isLoading } = useUser();
@@ -41,14 +42,17 @@ export default function HomePage() {
 
   return (
     <MainLayout>
-      <div className="space-y-8">
-        <div>
-          {currentUser.statistics && (
-            <UserOverallStats statistics={currentUser.statistics} />
-          )}
+      <div className="relative">
+        <div className="space-y-8 relative z-10">
+          <div>
+            {currentUser.statistics && (
+              <UserOverallStats statistics={currentUser.statistics} />
+            )}
+          </div>
+          <PracticeInitializer />
+          <Separator />
+          <UserStrategyProgressList />
         </div>
-        <PracticeInitializer />
-        <UserStrategyProgressList />
       </div>
     </MainLayout>
   );

@@ -73,26 +73,18 @@ export function PracticeInitializer() {
               enabledOperationsList.map((op) => (
                 <Badge
                   key={op}
-                  variant="secondary"
-                  className="text-xs sm:text-sm"
+                  variant="outline"
+                  className="text-xs sm:text-sm border-gray-400 text-gray-800"
                 >
                   {op}
                 </Badge>
               ))
             ) : (
               <>
-                <Badge variant="secondary" className="text-xs sm:text-sm">
-                  Addition
-                </Badge>
-                <Badge variant="secondary" className="text-xs sm:text-sm">
-                  Subtraction
-                </Badge>
-                <Badge variant="secondary" className="text-xs sm:text-sm">
-                  Multiplication
-                </Badge>
-                <Badge variant="secondary" className="text-xs sm:text-sm">
-                  Division
-                </Badge>
+                <Badge className="text-xs sm:text-sm">Addition</Badge>
+                <Badge className="text-xs sm:text-sm">Subtraction</Badge>
+                <Badge className="text-xs sm:text-sm">Multiplication</Badge>
+                <Badge className="text-xs sm:text-sm">Division</Badge>
               </>
             )}
           </div>
