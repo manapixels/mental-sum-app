@@ -104,12 +104,24 @@ export function SessionInterface() {
   }, [hasTimedOut, currentProblem, isActive, currentSession, clearTimeout]);
 
   useEffect(() => {
-    if (currentUser && !currentSession && !isActive) {
-      setShowCelebration(false);
-      sessionJustCompletedRef.current = false;
-      startSession();
+    if (
+      currentUser &&
+      !currentSession &&
+      !isActive &&
+      !showCelebration &&
+      !sessionJustCompletedRef.current
+    ) {
+      const timeoutId = setTimeout(() => {
+        if (!showCelebration && !sessionJustCompletedRef.current) {
+          setShowCelebration(false);
+          sessionJustCompletedRef.current = false;
+          startSession();
+        }
+      }, 100);
+
+      return () => window.clearTimeout(timeoutId);
     }
-  }, [currentUser, currentSession, isActive, startSession]);
+  }, [currentUser, currentSession, isActive, startSession, showCelebration]);
 
   useEffect(() => {
     if (currentSession?.completed && !isActive && currentSession.id) {
@@ -154,14 +166,17 @@ export function SessionInterface() {
       currentSession &&
       currentSession.problems.length > 0 &&
       problemIndex >= currentSession.problems.length - 1 &&
-      !currentSession.completed
+      !currentSession.completed &&
+      !sessionJustCompletedRef.current
     ) {
       sessionJustCompletedRef.current = true;
       setShowCelebration(true);
       nextProblem();
     } else if (currentSession && currentSession.completed) {
-      sessionJustCompletedRef.current = true;
-      setShowCelebration(true);
+      if (!sessionJustCompletedRef.current) {
+        sessionJustCompletedRef.current = true;
+        setShowCelebration(true);
+      }
     } else {
       setTimeout(() => {
         nextProblem();

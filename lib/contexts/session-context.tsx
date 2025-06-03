@@ -220,9 +220,31 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const endSession = useCallback(() => {
     if (!currentSession || !currentUser || !updateUser) return;
 
+    // Prevent multiple calls to endSession
+    if (currentSession.completed) {
+      console.log(
+        "Session already completed, skipping duplicate endSession call",
+        {
+          sessionId: currentSession.id,
+          totalCorrect: currentSession.totalCorrect,
+          totalWrong: currentSession.totalWrong,
+        },
+      );
+      return;
+    }
+
+    console.log("Starting endSession for session:", {
+      sessionId: currentSession.id,
+      problemsLength: currentSession.problems.length,
+      currentIndex: problemIndex,
+    });
+
     const completedProblems = currentSession.problems.filter(
       (p) => p.completedAt,
     );
+
+    console.log("Completed problems count:", completedProblems.length);
+
     const correctAnswers = completedProblems.filter((p) => p.isCorrect).length;
     const totalTimeSpentOnCompleted = completedProblems.reduce(
       (sum, p) => sum + (p.timeSpent || 0),
@@ -241,6 +263,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       totalWrong: completedProblems.length - correctAnswers,
       averageTime: averageTime,
     };
+
+    console.log("Final session stats:", {
+      sessionId: finalSession.id,
+      totalCorrect: finalSession.totalCorrect,
+      totalWrong: finalSession.totalWrong,
+      completedProblems: completedProblems.length,
+    });
 
     setCurrentSession(finalSession);
 
@@ -323,14 +352,14 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const getSessionProgress = useCallback(() => {
     if (!currentSession) return { completed: 0, total: 0, percentage: 0 };
-    const completed = problemIndex + (currentProblem?.completedAt ? 1 : 0);
+    const completed = problemIndex;
     const total = currentSession.sessionLength;
     return {
       completed,
       total,
       percentage: total > 0 ? (completed / total) * 100 : 0,
     };
-  }, [currentSession, problemIndex, currentProblem]);
+  }, [currentSession, problemIndex]);
 
   const clearTimeout = useCallback(() => {
     setHasTimedOut(false);
