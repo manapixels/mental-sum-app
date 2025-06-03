@@ -4,15 +4,7 @@ import { Session } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Trophy,
-  Clock,
-  Target,
-  Home,
-  RotateCcw,
-  TrendingUp,
-  Star,
-} from "lucide-react";
+import { Clock, Target, Home, RotateCcw, TrendingUp, Star } from "lucide-react";
 
 interface SessionResultsProps {
   session: Session;
@@ -72,8 +64,8 @@ export function SessionResults({
   }) => {
     const sizeClasses = {
       sm: "h-4 w-4",
-      md: "h-5 w-5",
-      lg: "h-6 w-6",
+      md: "h-6 w-6",
+      lg: "h-8 w-8",
     };
 
     return (
@@ -96,17 +88,14 @@ export function SessionResults({
     <div className="space-y-6">
       {/* Header */}
       <Card className="border-0 shadow-none">
-        <CardHeader className="text-center pb-6">
-          <div className="mx-auto mb-4">
-            <Trophy className="h-12 w-12 text-yellow-500" />
-          </div>
-          <CardTitle className="text-2xl sm:text-3xl mb-2">
-            Session Complete!
-          </CardTitle>
+        <CardHeader className="text-center py-6">
           <div className="flex flex-col items-center gap-2">
             <Badge variant={performanceBadge.variant} className="px-4 py-2">
               <StarRating stars={performanceBadge.stars} size="lg" />
             </Badge>
+            <span className="text-2xl font-medium">
+              {performanceBadge.text}
+            </span>
           </div>
         </CardHeader>
       </Card>
@@ -127,11 +116,6 @@ export function SessionResults({
             <div className="text-xs text-muted-foreground mt-1 hidden sm:block">
               {correctAnswers}/{completedProblems.length} correct
             </div>
-            <StarRating
-              stars={getPerformanceStars(accuracyRate)}
-              className="mt-2 justify-center"
-              size="sm"
-            />
           </CardContent>
         </Card>
 
@@ -217,15 +201,7 @@ export function SessionResults({
       </Card>
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Button
-          onClick={onNewSession}
-          size="lg"
-          className="h-12 sm:h-auto px-6 sm:px-8 text-base"
-        >
-          <RotateCcw className="mr-2 h-4 w-4" />
-          New Session
-        </Button>
+      <div className="flex flex-row gap-3">
         <Button
           variant="outline"
           onClick={onBackToHome}
@@ -234,6 +210,14 @@ export function SessionResults({
         >
           <Home className="mr-2 h-4 w-4" />
           Back to Home
+        </Button>
+        <Button
+          onClick={onNewSession}
+          size="lg"
+          className="flex-1 h-12 sm:h-auto px-6 sm:px-8 text-base"
+        >
+          <RotateCcw className="mr-2 h-4 w-4" />
+          New Session
         </Button>
       </div>
     </div>

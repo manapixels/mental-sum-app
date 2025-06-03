@@ -57,10 +57,11 @@ export function SessionInterface() {
 
   const handleCelebrationComplete = useCallback(() => {
     setShowCelebration(false);
-    if (currentSession?.id) {
-      router.push(`/session/${currentSession.id}/results`);
+    const sessionId = currentSession?.id;
+    if (sessionId) {
+      router.push(`/session/${sessionId}/results`);
     }
-  }, [router, currentSession]);
+  }, [router, currentSession?.id]);
 
   const handleNumberPress = (number: string) => {
     if (feedbackType === null) {
@@ -111,15 +112,10 @@ export function SessionInterface() {
   }, [currentUser, currentSession, isActive, startSession]);
 
   useEffect(() => {
-    if (
-      currentSession?.completed &&
-      !isActive &&
-      !showCelebration &&
-      currentSession.id
-    ) {
+    if (currentSession?.completed && !isActive && currentSession.id) {
       router.push(`/session/${currentSession.id}/results`);
     }
-  }, [currentSession, isActive, showCelebration, router]);
+  }, [currentSession, isActive, router]);
 
   useEffect(() => {
     if (!isActive || isPaused || !currentSession) return;

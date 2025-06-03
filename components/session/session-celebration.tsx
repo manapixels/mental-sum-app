@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { Trophy, Star, Zap } from "lucide-react";
 import { Session } from "@/lib/types";
 import { useSoundEffects } from "@/lib/hooks/use-audio";
@@ -20,6 +20,7 @@ export function SessionCelebration({
 }: SessionCelebrationProps) {
   const { playAchievement, playPerfect, playSuccess } = useSoundEffects();
   const { vibrateSessionComplete, vibrateAchievement } = useHaptic();
+
   const [confettiPieces, setConfettiPieces] = useState<
     Array<{
       id: number;
@@ -30,47 +31,63 @@ export function SessionCelebration({
     }>
   >([]);
 
-  // Track if celebration sound has been played to prevent loops
+  // Refs to track initialization and prevent duplicate effects
+  const initializedRef = useRef(false);
   const soundPlayedRef = useRef(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Calculate performance metrics (needed early for sound selection)
-  const accuracy =
-    session.problems.length > 0
-      ? Math.round((session.totalCorrect / session.problems.length) * 100)
-      : 0;
+  // Memoize performance metrics to prevent recalculation
+  const performanceMetrics = useMemo(() => {
+    const accuracy =
+      session.problems.length > 0
+        ? Math.round((session.totalCorrect / session.problems.length) * 100)
+        : 0;
 
-  const averageTime = Math.round(
-    session.problems.reduce((sum, p) => sum + (p.timeSpent || 0), 0) /
-      session.problems.length,
-  );
+    const averageTime =
+      session.problems.length > 0
+        ? Math.round(
+            session.problems.reduce((sum, p) => sum + (p.timeSpent || 0), 0) /
+              session.problems.length,
+          )
+        : 0;
 
-  // Standardized performance thresholds
-  const getPerformanceStars = (accuracy: number) => {
-    if (accuracy >= 90) return 3;
-    if (accuracy >= 70) return 2;
-    return 1;
-  };
+    return { accuracy, averageTime };
+  }, [session.totalCorrect, session.problems]);
 
-  const getPerformanceMessage = () => {
+  // Memoize performance UI functions
+  const performanceUI = useMemo(() => {
+    const { accuracy } = performanceMetrics;
+
+    const getPerformanceStars = (acc: number) => {
+      if (acc >= 90) return 3;
+      if (acc >= 70) return 2;
+      return 1;
+    };
+
     const stars = getPerformanceStars(accuracy);
 
-    if (accuracy === 100) return "Perfect Score! 🌟";
-    if (stars === 3) return "Outstanding! 🎯";
-    if (stars === 2) return "Great Job! 👏";
-    return "Keep Practicing! 📚";
-  };
+    const message = (() => {
+      if (accuracy === 100) return "Perfect Score! 🌟";
+      if (stars === 3) return "Outstanding! 🎯";
+      if (stars === 2) return "Great Job! 👏";
+      return "Keep Practicing! 📚";
+    })();
 
-  const getPerformanceIcon = () => {
-    const stars = getPerformanceStars(accuracy);
+    const Icon = (() => {
+      if (accuracy === 100) return Star;
+      if (stars === 3) return Trophy;
+      return Zap;
+    })();
 
-    if (accuracy === 100) return Star;
-    if (stars === 3) return Trophy;
-    return Zap;
-  };
+    return { message, Icon, stars };
+  }, [performanceMetrics]);
 
-  // Generate confetti pieces and play celebration sound
+  // Single effect that only runs when show changes to true
   useEffect(() => {
-    if (show) {
+    if (show && !initializedRef.current) {
+      initializedRef.current = true;
+
+      // Generate confetti
       const pieces = Array.from({ length: 50 }, (_, i) => ({
         id: i,
         color: [
@@ -91,45 +108,65 @@ export function SessionCelebration({
       if (!soundPlayedRef.current) {
         soundPlayedRef.current = true;
 
+        // Play sound without dependencies to avoid infinite loops
         const playCelebrationSound = async () => {
-          if (accuracy === 100) {
-            await playPerfect();
-            vibrateAchievement();
-          } else if (accuracy >= 90) {
-            await playAchievement();
-            vibrateSessionComplete();
-          } else {
-            await playSuccess();
-            vibrateSessionComplete();
+          const { accuracy } = performanceMetrics;
+          try {
+            if (accuracy === 100) {
+              await playPerfect();
+              vibrateAchievement();
+            } else if (accuracy >= 90) {
+              await playAchievement();
+              vibrateSessionComplete();
+            } else {
+              await playSuccess();
+              vibrateSessionComplete();
+            }
+          } catch (error) {
+            console.warn("Failed to play celebration sound:", error);
           }
         };
+
         playCelebrationSound();
       }
 
-      // Auto-dismiss after celebration
-      const timer = setTimeout(() => {
+      // Auto-dismiss timer
+      timerRef.current = setTimeout(() => {
         onComplete();
       }, 4000);
-
-      return () => clearTimeout(timer);
-    } else {
-      // Reset sound played flag when not showing
+    } else if (!show) {
+      // Reset when hiding
+      initializedRef.current = false;
       soundPlayedRef.current = false;
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
     }
-  }, [
-    show,
-    accuracy,
-    onComplete,
-    playAchievement,
-    playPerfect,
-    playSuccess,
-    vibrateAchievement,
-    vibrateSessionComplete,
-  ]);
+
+    // Cleanup function
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [show]); // Only depend on show
+
+  // Handle onComplete changes without triggering infinite loops
+  useEffect(() => {
+    if (show && timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        onComplete();
+      }, 4000);
+    }
+  }, [onComplete, show]);
 
   if (!show) return null;
 
-  const PerformanceIcon = getPerformanceIcon();
+  const { accuracy, averageTime } = performanceMetrics;
+  const { message, Icon } = performanceUI;
 
   return (
     <AnimatePresence>
@@ -217,7 +254,7 @@ export function SessionCelebration({
                 }}
                 className="flex items-center justify-center"
               >
-                <PerformanceIcon className="h-12 w-12 text-white" />
+                <Icon className="h-12 w-12 text-white" />
               </motion.div>
             </motion.div>
 
@@ -238,7 +275,7 @@ export function SessionCelebration({
               transition={{ delay: 0.7 }}
               className="text-xl font-semibold text-gray-600 mb-6"
             >
-              {getPerformanceMessage()}
+              {message}
             </motion.p>
 
             {/* Stats */}
@@ -278,6 +315,12 @@ export function SessionCelebration({
               </p>
             </motion.div>
           </div>
+
+          {/* Click overlay */}
+          <div
+            className="absolute inset-0 cursor-pointer"
+            onClick={onComplete}
+          />
         </motion.div>
       </motion.div>
     </AnimatePresence>
