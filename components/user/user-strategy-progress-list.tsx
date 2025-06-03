@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useUser } from "@/lib/contexts/user-context";
 import { useSession } from "@/lib/contexts/session-context";
 import { useRouter } from "next/navigation";
-import { StrategyProgressCard } from "../user/StrategyProgressCard";
+import { StrategyProgressCard } from "./strategy-progress-card";
 import { ALL_STRATEGY_IDS, StrategyId, UserPreferences } from "@/lib/types";
 import { StrategyHelpModal } from "@/components/help/StrategyHelpModal";
 

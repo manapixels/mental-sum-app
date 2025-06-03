@@ -4,9 +4,9 @@ import React, { useState, useMemo } from "react";
 import { useUser } from "@/lib/contexts/user-context";
 import { useSession } from "@/lib/contexts/session-context";
 import { useRouter } from "next/navigation";
-import { IncorrectProblemCard } from "./IncorrectProblemCard";
+import { IncorrectProblemCard } from "./incorrect-problem-card";
 import { Problem, StrategyId } from "@/lib/types";
-import { STRATEGY_DISPLAY_DETAILS } from "@/components/user/UserStrategyProgressList";
+import { STRATEGY_DISPLAY_DETAILS } from "@/components/user/user-strategy-progress-list";
 import {
   Select,
   SelectContent,
@@ -32,10 +32,18 @@ export function IncorrectProblemsList() {
     if (!currentUser || !currentUser.statistics.problemHistory) {
       return [];
     }
-    return currentUser.statistics.problemHistory.filter(
-      (p: Problem) =>
-        p.completedAt && p.userAnswer !== undefined && p.isCorrect === false,
+
+    const incorrectProblems = currentUser.statistics.problemHistory.filter(
+      (p: Problem) => {
+        const hasCompletedAt = !!p.completedAt;
+        const hasUserAnswer = p.userAnswer !== undefined;
+        const isIncorrect = p.isCorrect === false;
+
+        return hasCompletedAt && hasUserAnswer && isIncorrect;
+      },
     );
+
+    return incorrectProblems;
   }, [currentUser]);
 
   const availableStrategiesForFilter = useMemo(() => {
@@ -113,6 +121,12 @@ export function IncorrectProblemsList() {
           You have no incorrect answers to review right now. Keep up the great
           work!
         </p>
+        <div className="mt-4 p-4 bg-muted/50 rounded-lg text-sm">
+          <p className="text-muted-foreground">
+            Debug info: Total problems in history:{" "}
+            {currentUser.statistics.problemHistory?.length || 0}
+          </p>
+        </div>
       </div>
     );
   }
@@ -122,7 +136,7 @@ export function IncorrectProblemsList() {
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
         <div>
           <h2 className="text-xl font-semibold tracking-tight">
-            Review Your Mistakes
+            Review Your Mistakes ({allIncorrectProblems.length} problems)
           </h2>
           <p className="text-sm text-muted-foreground hidden sm:block">
             Here are the problems you answered incorrectly. Use this to learn

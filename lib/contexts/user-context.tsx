@@ -10,7 +10,6 @@ import {
   StrategyMetrics,
   ALL_STRATEGY_IDS,
   Problem,
-  UserStatistics,
   Session,
 } from "@/lib/types";
 import { StorageManager } from "@/lib/storage";
@@ -28,7 +27,7 @@ interface UserContextType {
   updateStrategyMetrics: (
     strategyId: StrategyId,
     isCorrect: boolean,
-    timeSpentMs: number,
+    timeSpentMs?: number,
   ) => void;
   getSessionById: (sessionId: string) => Session | null;
   getSessionsForCurrentUser: () => Session[];
@@ -164,68 +163,89 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const updateUserStatistics = (
-    userId: string,
-    newStats: Partial<UserStatistics>,
-  ) => {
-    const user = users.find((u) => u.id === userId);
-    if (user) {
-      const updatedUser = {
-        ...user,
-        statistics: {
-          ...user.statistics,
-          ...newStats,
-        },
-      };
-      // Ensure strategyPerformance and problemHistory are correctly merged if part of newStats
-      if (newStats.strategyPerformance) {
-        updatedUser.statistics.strategyPerformance = {
-          ...user.statistics.strategyPerformance,
-          ...newStats.strategyPerformance,
-        };
-      }
-      if (newStats.problemHistory) {
-        // Typically problemHistory is fully replaced or pushed to, not merged key by key
-        updatedUser.statistics.problemHistory = newStats.problemHistory;
-      }
-
-      StorageManager.updateUser(userId, { statistics: updatedUser.statistics });
-      if (currentUser?.id === userId) {
-        setCurrentUserState(migrateUserStatistics(updatedUser)); // Apply migration again just in case
-      }
-      // Update the user in the main users list state as well
-      setUsers((prevUsers) =>
-        prevUsers
-          .map((u) => (u.id === userId ? updatedUser : u))
-          .map(migrateUserStatistics),
-      );
-      return updatedUser;
-    }
-    return null;
-  };
-
   const logProblemAttempt = (problemAttempt: Problem) => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      console.log("logProblemAttempt: No current user");
+      return;
+    }
 
-    const newHistory = [...(currentUser.statistics.problemHistory || [])];
-    newHistory.push(problemAttempt);
+    console.log("logProblemAttempt: Logging problem:", {
+      id: problemAttempt.id,
+      operands: problemAttempt.operands,
+      userAnswer: problemAttempt.userAnswer,
+      correctAnswer: problemAttempt.correctAnswer,
+      isCorrect: problemAttempt.isCorrect,
+      completedAt: problemAttempt.completedAt,
+    });
+
+    // Get the most up-to-date user data from storage instead of state
+    const freshUser = StorageManager.getUserById(currentUser.id);
+    if (!freshUser) {
+      console.error("logProblemAttempt: Could not find user in storage");
+      return;
+    }
+
+    const currentProblemHistory = freshUser.statistics.problemHistory || [];
+    const newHistory = [...currentProblemHistory, problemAttempt];
 
     // Cap the history length
     if (newHistory.length > MAX_PROBLEM_HISTORY_LENGTH) {
       newHistory.shift(); // Remove the oldest problem
     }
 
-    updateUserStatistics(currentUser.id, { problemHistory: newHistory });
-    console.log("Problem logged, history length:", newHistory.length);
+    console.log(
+      "logProblemAttempt: Updating storage directly with history length:",
+      newHistory.length,
+    );
+
+    // Update storage directly
+    const updatedStatistics = {
+      ...freshUser.statistics,
+      problemHistory: newHistory,
+    };
+
+    StorageManager.updateUser(currentUser.id, {
+      statistics: updatedStatistics,
+    });
+
+    // Verify the update worked
+    const verifyUser = StorageManager.getUserById(currentUser.id);
+    console.log(
+      "logProblemAttempt: After storage update, verified history length:",
+      verifyUser?.statistics.problemHistory?.length || 0,
+    );
+
+    // Now update the React state to match
+    if (currentUser?.id === currentUser.id) {
+      const migratedUser = migrateUserStatistics(verifyUser!);
+      setCurrentUserState(migratedUser);
+    }
+
+    // Update the users array state as well
+    setUsers((prevUsers) =>
+      prevUsers
+        .map((u) => (u.id === currentUser.id ? verifyUser! : u))
+        .map(migrateUserStatistics),
+    );
+
+    console.log("logProblemAttempt: Problem logged successfully");
   };
 
   const updateStrategyMetrics = (
     strategyId: StrategyId,
     isCorrect: boolean,
+    timeSpentMs?: number,
   ) => {
     if (!currentUser) return;
 
-    const currentMetrics = currentUser.statistics.strategyPerformance[
+    // Get fresh user data from storage to avoid overwriting recent problem history
+    const freshUser = StorageManager.getUserById(currentUser.id);
+    if (!freshUser) {
+      console.error("updateStrategyMetrics: Could not find user in storage");
+      return;
+    }
+
+    const currentMetrics = freshUser.statistics.strategyPerformance[
       strategyId
     ] || {
       correct: 0,
@@ -241,14 +261,40 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     };
 
     const newStrategyPerformance = {
-      ...currentUser.statistics.strategyPerformance,
+      ...freshUser.statistics.strategyPerformance,
       [strategyId]: updatedMetrics,
     };
 
-    updateUserStatistics(currentUser.id, {
+    // Update storage directly with fresh data, preserving problem history
+    const updatedStatistics = {
+      ...freshUser.statistics,
       strategyPerformance: newStrategyPerformance,
+    };
+
+    StorageManager.updateUser(currentUser.id, {
+      statistics: updatedStatistics,
     });
-    console.log("Strategy metrics updated for:", strategyId, updatedMetrics);
+
+    // Update React state to match
+    const verifyUser = StorageManager.getUserById(currentUser.id);
+    if (verifyUser) {
+      const migratedUser = migrateUserStatistics(verifyUser);
+      setCurrentUserState(migratedUser);
+
+      // Update the users array state as well
+      setUsers((prevUsers) =>
+        prevUsers
+          .map((u) => (u.id === currentUser.id ? verifyUser : u))
+          .map(migrateUserStatistics),
+      );
+    }
+
+    console.log(
+      "Strategy metrics updated for:",
+      strategyId,
+      updatedMetrics,
+      timeSpentMs ? `(${timeSpentMs}ms)` : "(no time)",
+    );
   };
 
   const updateUser = (userId: string, updates: Partial<User>): User | null => {

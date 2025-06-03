@@ -1,6 +1,6 @@
 import React from "react";
 import { StrategyId } from "@/lib/types";
-import { STRATEGY_DISPLAY_DETAILS } from "@/components/user/UserStrategyProgressList";
+import { STRATEGY_DISPLAY_DETAILS } from "@/components/user/user-strategy-progress-list";
 import {
   Dialog,
   DialogContent,

@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { UserStrategyProgressList } from "@/components/user/UserStrategyProgressList";
-import { UserOverallStats } from "@/components/user/UserOverallStats";
+import { UserStrategyProgressList } from "@/components/user/user-strategy-progress-list";
+import { UserOverallStats } from "@/components/user/user-overall-stats";
 import { useUser } from "@/lib/contexts/user-context";
 import { MainLayout } from "@/components/layout/main-layout";
 import { PracticeInitializer } from "@/components/home/practice-initializer";

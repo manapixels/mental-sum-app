@@ -9,7 +9,7 @@ import {
   CardDescription,
   CardFooter,
 } from "@/components/ui/card";
-import { STRATEGY_DISPLAY_DETAILS } from "@/components/user/UserStrategyProgressList";
+import { STRATEGY_DISPLAY_DETAILS } from "@/components/user/user-strategy-progress-list";
 
 interface IncorrectProblemCardProps {
   problem: Problem;
