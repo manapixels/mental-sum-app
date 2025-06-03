@@ -69,24 +69,15 @@ export function PracticeInitializer() {
         </CardHeader>
         <CardContent className="text-center space-y-4 px-0 flex flex-row justify-between gap-2">
           <div className="flex flex-wrap gap-2 mb-0">
-            {enabledOperationsList.length > 0 ? (
-              enabledOperationsList.map((op) => (
-                <Badge
-                  key={op}
-                  variant="outline"
-                  className="text-xs sm:text-sm border-gray-400 text-gray-800"
-                >
-                  {op}
-                </Badge>
-              ))
-            ) : (
-              <>
-                <Badge className="text-xs sm:text-sm">Addition</Badge>
-                <Badge className="text-xs sm:text-sm">Subtraction</Badge>
-                <Badge className="text-xs sm:text-sm">Multiplication</Badge>
-                <Badge className="text-xs sm:text-sm">Division</Badge>
-              </>
-            )}
+            {enabledOperationsList.map((op) => (
+              <Badge
+                key={op}
+                variant="outline"
+                className={`text-xs sm:text-sm ${op === "Addition" ? "border-green-600" : op === "Subtraction" ? "border-red-600" : op === "Multiplication" ? "border-blue-600" : "border-purple-600"}`}
+              >
+                {op}
+              </Badge>
+            ))}
           </div>
 
           <Button
