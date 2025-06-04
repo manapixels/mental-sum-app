@@ -83,7 +83,21 @@ const createMockUserStatistics = (
   problemHistory: [],
 });
 
-describe("ProblemEngine", () => {
+describe("Problem Engine", () => {
+  let consoleWarnSpy: jest.SpyInstance;
+  let consoleLogSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    // Mock console methods to prevent test output pollution
+    consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleWarnSpy.mockRestore();
+    consoleLogSpy.mockRestore();
+  });
+
   describe("generateProblem", () => {
     test("should generate a valid problem object", () => {
       const userStats = createMockUserStatistics();

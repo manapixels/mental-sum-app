@@ -45,9 +45,23 @@ const mockSession: Omit<Session, "id"> = {
 };
 
 describe("StorageManager", () => {
+  let consoleErrorSpy: jest.SpyInstance;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLocalStorage.clear();
+
+    // Mock console.error to prevent test output pollution during error testing
+    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+    // Reset localStorage mock to default behavior
     mockLocalStorage.getItem.mockReturnValue(null);
+
+    // Don't call initialize() here - let each test control when it's called
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
   });
 
   describe("initialize", () => {
