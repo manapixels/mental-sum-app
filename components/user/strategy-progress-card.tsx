@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { HelpCircle } from "lucide-react";
+import { PerformanceUtils } from "@/lib/performance-thresholds";
 
 interface StrategyProgressCardProps {
   strategyId: StrategyId;
@@ -71,7 +72,11 @@ export function StrategyProgressCard({
               Accuracy:
             </span>
             <span
-              className={`text-sm font-semibold ${metrics.totalAttempts === 0 ? "text-muted-foreground" : accuracy >= 75 ? "text-green-600 dark:text-green-400" : accuracy >= 50 ? "text-yellow-600 dark:text-yellow-400" : "text-red-600 dark:text-red-400"}`}
+              className={`text-sm font-semibold ${
+                metrics.totalAttempts === 0
+                  ? "text-muted-foreground"
+                  : PerformanceUtils.getAccuracyColorClass(accuracy)
+              }`}
             >
               {accuracyText}
             </span>

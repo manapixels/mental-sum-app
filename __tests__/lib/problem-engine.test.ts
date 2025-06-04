@@ -5,6 +5,7 @@ import {
   Problem,
   StrategyId,
 } from "@/lib/types";
+import { PERFORMANCE_THRESHOLDS } from "@/lib/performance-thresholds";
 
 // Test data setup
 const mockUserPreferences: UserPreferences = {
@@ -538,9 +539,19 @@ describe("Problem Engine", () => {
     });
 
     test("should give minimal weight to mastered strategies", () => {
-      // Create user stats where one strategy is mastered (100% accuracy with enough attempts)
+      // Create user stats where one strategy is mastered using centralized criteria
       const userStats = createMockUserStatistics({
-        AdditionDoubles: { totalAttempts: 10, correct: 10, incorrect: 0 }, // Mastered
+        AdditionDoubles: {
+          totalAttempts: PERFORMANCE_THRESHOLDS.MASTERY.MIN_ATTEMPTS,
+          correct: Math.ceil(
+            PERFORMANCE_THRESHOLDS.MASTERY.MIN_ATTEMPTS *
+              PERFORMANCE_THRESHOLDS.MASTERY.ACCURACY,
+          ),
+          incorrect: Math.floor(
+            PERFORMANCE_THRESHOLDS.MASTERY.MIN_ATTEMPTS *
+              (1 - PERFORMANCE_THRESHOLDS.MASTERY.ACCURACY),
+          ),
+        }, // Mastered
         AdditionBridgingTo10s: { totalAttempts: 10, correct: 5, incorrect: 5 }, // Needs work
       });
 
@@ -564,7 +575,7 @@ describe("Problem Engine", () => {
       // Mastered strategy should appear much less frequently
       expect(bridgingProblems.length).toBeGreaterThan(doublesProblems.length);
 
-      // With MASTERED_STRATEGY_WEIGHT = 0.01 vs other weights ~0.5, expect roughly 2% of samples
+      // With centralized MASTERED_STRATEGY_WEIGHT, expect roughly that percentage of samples
       // With 2000 samples, we should see some occurrences statistically, but allow for randomness
       // Mastered strategies should be less than 10% of total problems due to very low weight
       expect(doublesProblems.length).toBeLessThan(problems.length * 0.1);

@@ -31,6 +31,7 @@ import { ALL_STRATEGY_IDS, StrategyId } from "@/lib/types";
 import { STRATEGY_DISPLAY_DETAILS } from "./user-strategy-progress-list";
 import { StrategyHelpModal } from "@/components/help/strategy-help-modal";
 import { Separator } from "@/components/ui/separator";
+import { PerformanceUtils } from "@/lib/performance-thresholds";
 
 // Water Tank Component
 interface WaterTankProps {
@@ -144,28 +145,40 @@ export function StrategyDashboard() {
     }
 
     const accuracy = (metrics.correct / metrics.totalAttempts) * 100;
+    const category = PerformanceUtils.getPerformanceCategory(
+      metrics.correct,
+      metrics.totalAttempts,
+    );
 
-    if (accuracy >= 90 && metrics.totalAttempts >= 5) {
-      return {
-        status: "mastered" as const,
-        accuracy,
-        icon: CheckCircle2,
-        color: "bg-green-100 text-green-700",
-      };
-    } else if (accuracy >= 70) {
-      return {
-        status: "good" as const,
-        accuracy,
-        icon: TrendingUp,
-        color: "bg-blue-100 text-blue-700",
-      };
-    } else {
-      return {
-        status: "weak" as const,
-        accuracy,
-        icon: AlertTriangle,
-        color: "bg-red-100 text-red-700",
-      };
+    switch (category) {
+      case "mastered":
+        return {
+          status: "mastered" as const,
+          accuracy,
+          icon: CheckCircle2,
+          color: "bg-green-100 text-green-700",
+        };
+      case "good":
+        return {
+          status: "good" as const,
+          accuracy,
+          icon: TrendingUp,
+          color: "bg-blue-100 text-blue-700",
+        };
+      case "weak":
+        return {
+          status: "weak" as const,
+          accuracy,
+          icon: AlertTriangle,
+          color: "bg-red-100 text-red-700",
+        };
+      default:
+        return {
+          status: "untried" as const,
+          accuracy: 0,
+          icon: Circle,
+          color: "bg-gray-100 text-gray-600",
+        };
     }
   }
 

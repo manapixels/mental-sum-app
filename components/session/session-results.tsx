@@ -1,10 +1,12 @@
 "use client";
 
+import React from "react";
 import { Session } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Target, Home, RotateCcw, TrendingUp, Star } from "lucide-react";
+import { PerformanceUtils } from "@/lib/performance-thresholds";
 
 interface SessionResultsProps {
   session: Session;
@@ -25,17 +27,13 @@ export function SessionResults({
       : 0;
   const averageTime = Math.round(session.averageTime * 10) / 10;
 
-  // Standardized performance thresholds
+  // Use centralized performance thresholds
   const getPerformanceColor = (accuracy: number) => {
-    if (accuracy >= 90) return "text-green-600";
-    if (accuracy >= 70) return "text-yellow-600";
-    return "text-red-600";
+    return PerformanceUtils.getSessionPerformanceColor(accuracy);
   };
 
   const getPerformanceStars = (accuracy: number) => {
-    if (accuracy >= 90) return 3;
-    if (accuracy >= 70) return 2;
-    return 1;
+    return PerformanceUtils.getSessionStars(accuracy);
   };
 
   const getPerformanceBadge = (accuracy: number) => {

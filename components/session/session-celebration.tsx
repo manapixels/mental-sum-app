@@ -1,11 +1,15 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState, useRef, useMemo } from "react";
-import { Trophy, Star, Zap } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { Trophy, Star, Target } from "lucide-react";
 import { Session } from "@/lib/types";
 import { useSoundEffects } from "@/lib/hooks/use-audio";
 import { useHaptic } from "@/lib/hooks/use-haptic";
+import {
+  PerformanceUtils,
+  PERFORMANCE_THRESHOLDS,
+} from "@/lib/performance-thresholds";
 
 interface SessionCelebrationProps {
   session: Session;
@@ -36,51 +40,43 @@ export function SessionCelebration({
   const soundPlayedRef = useRef(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Memoize performance metrics to prevent recalculation
-  const performanceMetrics = useMemo(() => {
-    const accuracy =
-      session.problems.length > 0
-        ? Math.round((session.totalCorrect / session.problems.length) * 100)
-        : 0;
+  // Calculate performance metrics
+  const completedProblems = session.problems.filter((p) => p.completedAt);
+  const correctAnswers = session.totalCorrect;
+  const accuracy =
+    completedProblems.length > 0
+      ? Math.round((correctAnswers / completedProblems.length) * 100)
+      : 0;
+  const averageTime = Math.round(session.averageTime * 10) / 10;
 
-    const averageTime =
-      session.problems.length > 0
-        ? Math.round(
-            session.problems.reduce((sum, p) => sum + (p.timeSpent || 0), 0) /
-              session.problems.length,
-          )
-        : 0;
+  const performanceMetrics = { accuracy, averageTime };
 
-    return { accuracy, averageTime };
-  }, [session.totalCorrect, session.problems]);
+  // Use centralized performance thresholds for UI feedback
+  const getPerformanceStars = (acc: number) => {
+    return PerformanceUtils.getSessionStars(acc);
+  };
 
-  // Memoize performance UI functions
-  const performanceUI = useMemo(() => {
-    const { accuracy } = performanceMetrics;
-
-    const getPerformanceStars = (acc: number) => {
-      if (acc >= 90) return 3;
-      if (acc >= 70) return 2;
-      return 1;
+  const getPerformanceUI = (acc: number) => {
+    const stars = getPerformanceStars(acc);
+    if (stars === 3) {
+      return {
+        message: "Outstanding! You're mastering mental math!",
+        Icon: Trophy,
+      };
+    }
+    if (stars === 2) {
+      return {
+        message: "Great job! Keep up the good work!",
+        Icon: Star,
+      };
+    }
+    return {
+      message: "Good effort! Practice makes perfect!",
+      Icon: Target,
     };
+  };
 
-    const stars = getPerformanceStars(accuracy);
-
-    const message = (() => {
-      if (accuracy === 100) return "Perfect Score! 🌟";
-      if (stars === 3) return "Outstanding! 🎯";
-      if (stars === 2) return "Great Job! 👏";
-      return "Keep Practicing! 📚";
-    })();
-
-    const Icon = (() => {
-      if (accuracy === 100) return Star;
-      if (stars === 3) return Trophy;
-      return Zap;
-    })();
-
-    return { message, Icon, stars };
-  }, [performanceMetrics]);
+  const performanceUI = getPerformanceUI(accuracy);
 
   // Single effect that only runs when show changes to true
   useEffect(() => {
@@ -112,10 +108,14 @@ export function SessionCelebration({
         const playCelebrationSound = async () => {
           const { accuracy } = performanceMetrics;
           try {
+            // Use centralized thresholds for celebration sounds
             if (accuracy === 100) {
               await playPerfect();
               vibrateAchievement();
-            } else if (accuracy >= 90) {
+            } else if (
+              accuracy >=
+              PERFORMANCE_THRESHOLDS.SESSION_RATING.THREE_STARS * 100
+            ) {
               await playAchievement();
               vibrateSessionComplete();
             } else {
@@ -165,7 +165,6 @@ export function SessionCelebration({
 
   if (!show) return null;
 
-  const { accuracy, averageTime } = performanceMetrics;
   const { message, Icon } = performanceUI;
 
   return (

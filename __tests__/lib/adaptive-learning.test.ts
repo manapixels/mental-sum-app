@@ -5,6 +5,7 @@ import {
   StrategyId,
   defaultUserPreferences,
 } from "@/lib/types";
+import { PERFORMANCE_THRESHOLDS } from "@/lib/performance-thresholds";
 
 // Define StrategyPerformance type locally since it's not exported
 type StrategyPerformance = {
@@ -26,8 +27,12 @@ class AdaptiveLearningEngine {
           ? performance.correct / performance.totalAttempts
           : 0;
 
-      // Consider weak if accuracy < 70% and has at least 3 attempts
-      if (performance.totalAttempts >= 3 && accuracy < 0.7) {
+      // Use centralized weakness criteria
+      if (
+        performance.totalAttempts >=
+          PERFORMANCE_THRESHOLDS.WEAKNESS.MIN_ATTEMPTS &&
+        accuracy < PERFORMANCE_THRESHOLDS.WEAKNESS.ACCURACY
+      ) {
         weakStrategies.push(strategyId as StrategyId);
       }
     });
@@ -46,8 +51,12 @@ class AdaptiveLearningEngine {
           ? performance.correct / performance.totalAttempts
           : 0;
 
-      // Consider mastered if accuracy >= 90% and has at least 10 attempts
-      if (performance.totalAttempts >= 10 && accuracy >= 0.9) {
+      // Use centralized mastery criteria
+      if (
+        performance.totalAttempts >=
+          PERFORMANCE_THRESHOLDS.MASTERY.MIN_ATTEMPTS &&
+        accuracy >= PERFORMANCE_THRESHOLDS.MASTERY.ACCURACY
+      ) {
         masteredStrategies.push(strategyId as StrategyId);
       }
     });
@@ -61,7 +70,9 @@ class AdaptiveLearningEngine {
     const untriedStrategies: StrategyId[] = [];
 
     Object.entries(strategyPerformance).forEach(([strategyId, performance]) => {
-      if (performance.totalAttempts === 0) {
+      if (
+        performance.totalAttempts === PERFORMANCE_THRESHOLDS.UNTRIED.ATTEMPTS
+      ) {
         untriedStrategies.push(strategyId as StrategyId);
       }
     });
@@ -76,19 +87,23 @@ class AdaptiveLearningEngine {
     const performance = strategyPerformance[strategyId];
 
     if (!performance || performance.totalAttempts === 0) {
-      return 1.0; // High weight for untried strategies
+      return PERFORMANCE_THRESHOLDS.ADAPTIVE_WEIGHTS.UNTRIED_STRATEGY; // High weight for untried strategies
     }
 
     const accuracy = performance.correct / performance.totalAttempts;
 
-    // Mastered strategies get very low weight
-    if (performance.totalAttempts >= 10 && accuracy >= 0.9) {
-      return 0.01;
+    // Use centralized mastery criteria
+    if (
+      performance.totalAttempts >=
+        PERFORMANCE_THRESHOLDS.MASTERY.MIN_ATTEMPTS &&
+      accuracy >= PERFORMANCE_THRESHOLDS.MASTERY.ACCURACY
+    ) {
+      return PERFORMANCE_THRESHOLDS.ADAPTIVE_WEIGHTS.MASTERED_STRATEGY;
     }
 
-    // Weak strategies get higher weight
-    if (accuracy < 0.7) {
-      return 0.8 + (0.7 - accuracy); // 0.8 to 1.5 range
+    // Use centralized weakness criteria for higher weight
+    if (accuracy < PERFORMANCE_THRESHOLDS.WEAKNESS.ACCURACY) {
+      return 0.8 + (PERFORMANCE_THRESHOLDS.WEAKNESS.ACCURACY - accuracy); // 0.8 to 1.5 range
     }
 
     // Medium strategies get medium weight
@@ -279,7 +294,9 @@ describe("Adaptive Learning Algorithm", () => {
         strategyPerformance,
       );
 
-      expect(weight).toBe(1.0);
+      expect(weight).toBe(
+        PERFORMANCE_THRESHOLDS.ADAPTIVE_WEIGHTS.UNTRIED_STRATEGY,
+      );
     });
 
     test("should give very low weight to mastered strategies", () => {
@@ -292,7 +309,9 @@ describe("Adaptive Learning Algorithm", () => {
         strategyPerformance,
       );
 
-      expect(weight).toBe(0.01);
+      expect(weight).toBe(
+        PERFORMANCE_THRESHOLDS.ADAPTIVE_WEIGHTS.MASTERED_STRATEGY,
+      );
     });
 
     test("should give higher weight to weak strategies", () => {
@@ -311,7 +330,9 @@ describe("Adaptive Learning Algorithm", () => {
       );
 
       expect(weakWeight).toBeGreaterThan(goodWeight);
-      expect(weakWeight).toBeGreaterThan(1.0); // Weak strategies get boosted weight
+      expect(weakWeight).toBeGreaterThan(
+        PERFORMANCE_THRESHOLDS.ADAPTIVE_WEIGHTS.UNTRIED_STRATEGY,
+      ); // Weak strategies get boosted weight
     });
   });
 

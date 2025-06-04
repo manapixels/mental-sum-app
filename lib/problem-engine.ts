@@ -5,13 +5,19 @@ import {
   StrategyId,
   ALL_STRATEGY_IDS,
 } from "./types";
+import { PERFORMANCE_THRESHOLDS } from "./performance-thresholds";
 
-// Configuration for adaptive learning
-const ATTEMPT_THRESHOLD = 5;
-const UNTRIED_STRATEGY_BASE_WEIGHT = 1.0;
-const LOW_ATTEMPT_BOOST_FACTOR = 0.2;
-const MIN_TRIED_STRATEGY_WEIGHT = 0.05;
-const MASTERED_STRATEGY_WEIGHT = 0.01; // New: for strategies considered mastered
+// Configuration for adaptive learning - now using centralized thresholds
+const ATTEMPT_THRESHOLD =
+  PERFORMANCE_THRESHOLDS.ADAPTIVE_WEIGHTS.ATTEMPT_THRESHOLD;
+const UNTRIED_STRATEGY_BASE_WEIGHT =
+  PERFORMANCE_THRESHOLDS.ADAPTIVE_WEIGHTS.UNTRIED_STRATEGY;
+const LOW_ATTEMPT_BOOST_FACTOR =
+  PERFORMANCE_THRESHOLDS.ADAPTIVE_WEIGHTS.LOW_ATTEMPT_BOOST_FACTOR;
+const MIN_TRIED_STRATEGY_WEIGHT =
+  PERFORMANCE_THRESHOLDS.ADAPTIVE_WEIGHTS.MIN_TRIED_STRATEGY;
+const MASTERED_STRATEGY_WEIGHT =
+  PERFORMANCE_THRESHOLDS.ADAPTIVE_WEIGHTS.MASTERED_STRATEGY;
 
 interface WeightedStrategy {
   strategyId: StrategyId;
@@ -56,7 +62,11 @@ function calculateWeaknessWeights(
     } else {
       const accuracy = metrics.correct / metrics.totalAttempts;
 
-      if (accuracy === 1 && metrics.totalAttempts >= ATTEMPT_THRESHOLD) {
+      // Use centralized mastery criteria
+      if (
+        accuracy >= PERFORMANCE_THRESHOLDS.MASTERY.ACCURACY &&
+        metrics.totalAttempts >= PERFORMANCE_THRESHOLDS.MASTERY.MIN_ATTEMPTS
+      ) {
         // Mastered strategy - give it a very low weight to keep it in occasional rotation
         weight = MASTERED_STRATEGY_WEIGHT;
       } else {
