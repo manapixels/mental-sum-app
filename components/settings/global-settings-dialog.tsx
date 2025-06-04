@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,20 +11,22 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/lib/contexts/user-context";
 import { UserPreferences } from "@/lib/types";
-import { Plus, Minus, Calculator, Clock, X, Divide } from "lucide-react";
+import { Plus, Minus, Clock, Settings } from "lucide-react";
 import { useSoundEffects } from "@/lib/hooks/use-audio";
 import { useHaptic } from "@/lib/hooks/use-haptic";
 import { toast } from "sonner";
 
-interface SettingsDialogProps {
+interface GlobalSettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
+export function GlobalSettingsDialog({
+  open,
+  onOpenChange,
+}: GlobalSettingsDialogProps) {
   const { currentUser, updateUser } = useUser();
   const { playSettingsToggle } = useSoundEffects();
   const { vibrateSettingsToggle } = useHaptic();
@@ -72,7 +74,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     if (!currentUser || !preferences) return;
 
     updateUser(currentUser.id, { preferences });
-    toast.success("Settings saved successfully!");
+    toast.success("Global settings saved successfully!");
   }, [currentUser, preferences, updateUser]);
 
   const handleDialogOpenChange = useCallback(
@@ -85,23 +87,6 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     },
     [handleSave, onOpenChange, currentUser],
   );
-
-  const updateOperations = (
-    operation: keyof typeof preferences.enabledOperations,
-    enabled: boolean,
-  ) => {
-    // Play toggle sound and haptic
-    playSettingsToggle();
-    vibrateSettingsToggle();
-
-    setPreferences((prev) => ({
-      ...prev,
-      enabledOperations: {
-        ...prev.enabledOperations,
-        [operation]: enabled,
-      },
-    }));
-  };
 
   const adjustSessionLength = (direction: "up" | "down") => {
     // Play toggle sound and haptic
@@ -137,131 +122,24 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     });
   };
 
-  const enabledOperationsCount = Object.values(
-    preferences.enabledOperations,
-  ).filter(Boolean).length;
-
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            Settings
+            <Settings className="h-5 w-5" />
+            Global Settings
           </DialogTitle>
         </DialogHeader>
 
         <Separator />
 
         <div className="space-y-6">
-          {/* Operations */}
-          <div className="space-y-3">
-            <Label className="text-base font-medium flex items-center gap-2">
-              <Calculator className="h-4 w-4" />
-              Math Operations
-              <Badge variant="secondary" className="ml-auto">
-                {enabledOperationsCount}/4 enabled
-              </Badge>
-            </Label>
-
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between space-x-2 p-3 rounded-lg border">
-                <div className="flex items-center space-x-2">
-                  <Plus className="h-4 w-4 text-green-600" />
-                  <Label htmlFor="addition" className="text-sm font-medium">
-                    Addition
-                  </Label>
-                </div>
-                <Switch
-                  id="addition"
-                  checked={preferences.enabledOperations.addition}
-                  onCheckedChange={(checked) =>
-                    updateOperations("addition", checked)
-                  }
-                  disabled={
-                    enabledOperationsCount === 1 &&
-                    preferences.enabledOperations.addition
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between space-x-2 p-3 rounded-lg border">
-                <div className="flex items-center space-x-2">
-                  <Minus className="h-4 w-4 text-red-600" />
-                  <Label htmlFor="subtraction" className="text-sm font-medium">
-                    Subtraction
-                  </Label>
-                </div>
-                <Switch
-                  id="subtraction"
-                  checked={preferences.enabledOperations.subtraction}
-                  onCheckedChange={(checked) =>
-                    updateOperations("subtraction", checked)
-                  }
-                  disabled={
-                    enabledOperationsCount === 1 &&
-                    preferences.enabledOperations.subtraction
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between space-x-2 p-3 rounded-lg border">
-                <div className="flex items-center space-x-2">
-                  <X className="h-4 w-4 text-blue-600" />
-                  <Label
-                    htmlFor="multiplication"
-                    className="text-sm font-medium"
-                  >
-                    Multiplication
-                  </Label>
-                </div>
-                <Switch
-                  id="multiplication"
-                  checked={preferences.enabledOperations.multiplication}
-                  onCheckedChange={(checked) =>
-                    updateOperations("multiplication", checked)
-                  }
-                  disabled={
-                    enabledOperationsCount === 1 &&
-                    preferences.enabledOperations.multiplication
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between space-x-2 p-3 rounded-lg border">
-                <div className="flex items-center space-x-2">
-                  <Divide className="h-4 w-4 text-purple-600" />
-                  <Label htmlFor="division" className="text-sm font-medium">
-                    Division
-                  </Label>
-                </div>
-                <Switch
-                  id="division"
-                  checked={preferences.enabledOperations.division}
-                  onCheckedChange={(checked) =>
-                    updateOperations("division", checked)
-                  }
-                  disabled={
-                    enabledOperationsCount === 1 &&
-                    preferences.enabledOperations.division
-                  }
-                />
-              </div>
-            </div>
-
-            {enabledOperationsCount === 1 && (
-              <p className="text-xs text-muted-foreground">
-                At least one operation must be enabled for training sessions.
-              </p>
-            )}
-          </div>
-
-          <Separator />
-
           {/* Session Length */}
           <div className="space-y-3">
             <Label className="text-base font-medium flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              Session Length
+              Session Configuration
             </Label>
 
             <div className="flex items-center justify-between p-3 rounded-lg border">
@@ -297,10 +175,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 </Button>
               </div>
             </div>
-          </div>
 
-          {/* Time Limit */}
-          <div className="space-y-3">
+            {/* Time Limit */}
             <div className="flex items-center justify-between p-3 rounded-lg border">
               <div className="flex flex-col">
                 <span className="text-sm font-medium">Time per problem</span>
