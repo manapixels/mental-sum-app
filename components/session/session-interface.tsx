@@ -48,13 +48,6 @@ export function SessionInterface() {
   const sessionStartSoundPlayedRef = useRef(false);
   const timerWarningTriggeredRef = useRef<Set<number>>(new Set());
 
-  useEffect(() => {
-    if (!currentUser) {
-      router.replace("/");
-      return;
-    }
-  }, [currentUser, router]);
-
   const handleCelebrationComplete = useCallback(() => {
     setShowCelebration(false);
     const sessionId = currentSession?.id;

@@ -1,14 +1,9 @@
-"use client";
-
-import React from "react";
-import { StrategyDashboard } from "@/components/user/strategy-dashboard";
-import { UserOverallStats } from "@/components/user/user-overall-stats";
-import { useUser } from "@/lib/contexts/user-context";
-import { MainLayout } from "@/components/layout/main-layout";
-import { PracticeInitializer } from "@/components/home/practice-initializer";
-import { WelcomeScreen } from "@/components/user/user-selector";
-import { Separator } from "@/components/ui/separator";
 import type { Metadata } from "next";
+import { MainLayout } from "@/components/layout/main-layout";
+import { Separator } from "@/components/ui/separator";
+import { UserStatsSection } from "@/components/home/user-stats-section";
+import { PracticeSection } from "@/components/home/practice-section";
+import { StrategySection } from "@/components/home/strategy-section";
 
 export const metadata: Metadata = {
   title: "Dashboard - ne.ko",
@@ -16,49 +11,13 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  const { currentUser, users, isLoading } = useUser();
-
-  if (isLoading) {
-    return (
-      <MainLayout>
-        <div className="flex justify-center items-center h-64">
-          <p className="text-muted-foreground">Loading user data...</p>
-        </div>
-      </MainLayout>
-    );
-  }
-
-  // Show welcome screen if no users exist
-  if (users.length === 0) {
-    return <WelcomeScreen />;
-  }
-
-  if (!currentUser) {
-    return (
-      <MainLayout>
-        <div className="text-center py-10">
-          <h1 className="text-2xl font-bold mb-4">View Your Progress</h1>
-          <p className="text-muted-foreground">
-            Please select or create a user profile to view your progress.
-          </p>
-        </div>
-      </MainLayout>
-    );
-  }
-
   return (
     <MainLayout>
-      <div className="relative">
-        <div className="space-y-8 relative z-10">
-          <div>
-            {currentUser.statistics && (
-              <UserOverallStats statistics={currentUser.statistics} />
-            )}
-          </div>
-          <PracticeInitializer />
-          <Separator />
-          <StrategyDashboard />
-        </div>
+      <div className="space-y-8">
+        <UserStatsSection />
+        <PracticeSection />
+        <Separator />
+        <StrategySection />
       </div>
     </MainLayout>
   );

@@ -1,11 +1,6 @@
-"use client";
-
 import type { Metadata } from "next";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useUser } from "@/lib/contexts/user-context";
 import { MainLayout } from "@/components/layout/main-layout";
-import { IncorrectProblemsList } from "@/components/review/incorrect-problems-list";
+import { ReviewContent } from "@/components/review/review-content";
 
 export const metadata: Metadata = {
   title: "Review Mistakes - ne.ko",
@@ -14,29 +9,6 @@ export const metadata: Metadata = {
 };
 
 export default function ReviewPage() {
-  const router = useRouter();
-  const { currentUser, isLoading } = useUser();
-
-  useEffect(() => {
-    if (!isLoading && !currentUser) {
-      router.replace("/"); // Redirect if not logged in
-    }
-  }, [currentUser, isLoading, router]);
-
-  if (isLoading) {
-    return (
-      <MainLayout>
-        <div className="container mx-auto p-4 text-center">
-          <p>Loading review page...</p>
-        </div>
-      </MainLayout>
-    );
-  }
-
-  if (!currentUser) {
-    return null; // Or a message indicating redirection
-  }
-
   return (
     <MainLayout>
       <div className="mb-8">
@@ -44,8 +16,7 @@ export default function ReviewPage() {
           Review mistakes
         </h1>
       </div>
-
-      <IncorrectProblemsList />
+      <ReviewContent />
     </MainLayout>
   );
 }

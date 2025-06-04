@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SessionInterface } from "@/components/session/session-interface";
+import { SessionContent } from "@/components/session/session-content";
 
 export const metadata: Metadata = {
   title: "Practice Session - ne.ko",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function SessionPage() {
-  return <SessionInterface />;
+  return <SessionContent />;
 }
