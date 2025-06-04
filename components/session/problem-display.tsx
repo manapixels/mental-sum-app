@@ -3,18 +3,10 @@
 import { Problem } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Lightbulb } from "lucide-react";
 import { AnswerInput } from "./answer-input";
 import { NumberKeypad } from "./number-keypad";
 import { AnswerFeedback } from "./answer-feedback";
 import { motion } from "framer-motion";
-import { getConciseStrategyHint } from "@/lib/strategies";
-import { useState } from "react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 
 interface ProblemDisplayProps {
   problem: Problem;
@@ -33,7 +25,6 @@ interface ProblemDisplayProps {
 
 export function ProblemDisplay({
   problem,
-  showStrategy = false,
   userAnswer,
   onAnswerChange,
   onSubmit,
@@ -45,8 +36,6 @@ export function ProblemDisplay({
   disabled = false,
   feedbackType,
 }: ProblemDisplayProps) {
-  const [isHintOpen, setIsHintOpen] = useState(false);
-
   const getOperationSymbol = (operation: string) => {
     switch (operation) {
       case "addition":
@@ -161,43 +150,6 @@ export function ProblemDisplay({
               )}
             </div>
           </div>
-
-          {/* Collapsible Strategy Hint */}
-          {showStrategy && problem.intendedStrategy && (
-            <Collapsible
-              open={isHintOpen}
-              onOpenChange={setIsHintOpen}
-              className="mt-6 w-full px-4 sm:px-6"
-            >
-              <div className="flex justify-start">
-                {" "}
-                {/* Align button to the left or center as preferred */}
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-2 text-sm"
-                  >
-                    <Lightbulb className="h-4 w-4" />
-                    <span>{isHintOpen ? "Hide Hint" : "Show Hint"}</span>
-                  </Button>
-                </CollapsibleTrigger>
-              </div>
-              <CollapsibleContent className="mt-3">
-                <div className="p-3 bg-muted/30 rounded-md border">
-                  {" "}
-                  {/* Slightly less emphasis than original bg-muted/50 */}
-                  <div className="text-xs font-medium text-muted-foreground mb-1 flex items-center">
-                    {/* The lightbulb icon was already in the original text, keeping it for consistency */}
-                    Strategy Suggestion:
-                  </div>
-                  <div className="text-sm">
-                    {getConciseStrategyHint(problem)}
-                  </div>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          )}
         </CardContent>
       </Card>
     </motion.div>

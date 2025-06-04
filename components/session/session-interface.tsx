@@ -258,7 +258,6 @@ export function SessionInterface() {
             <AnimatePresence>
               <ProblemDisplay
                 problem={currentProblem}
-                showStrategy={currentUser.preferences.showStrategies}
                 userAnswer={userAnswer}
                 onAnswerChange={setUserAnswer}
                 onSubmit={handleSubmitAnswer}

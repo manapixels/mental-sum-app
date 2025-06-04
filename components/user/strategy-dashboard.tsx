@@ -124,9 +124,10 @@ export function StrategyDashboard() {
     division: [] as StrategyId[],
   };
 
+  // Always include all strategies, regardless of operation being enabled
   ALL_STRATEGY_IDS.forEach((strategyId) => {
     const details = STRATEGY_DISPLAY_DETAILS[strategyId];
-    if (details && enabledOperations[details.opKey]) {
+    if (details) {
       operationGroups[details.opKey].push(strategyId);
     }
   });
@@ -242,12 +243,11 @@ export function StrategyDashboard() {
     }
   };
 
-  // Get priority strategies (weak or untried)
-  const priorityStrategies = ALL_STRATEGY_IDS.filter((id) => {
-    const details = STRATEGY_DISPLAY_DETAILS[id];
-    return details && enabledOperations[details.opKey];
-  })
-    .map((strategyId) => ({ strategyId, ...getStrategyStatus(strategyId) }))
+  // Get priority strategies (weak or untried) - include all operations
+  const priorityStrategies = ALL_STRATEGY_IDS.map((strategyId) => ({
+    strategyId,
+    ...getStrategyStatus(strategyId),
+  }))
     .filter((s) => s.status === "weak" || s.status === "untried")
     .sort((a, b) => {
       // Prioritize weak over untried, then by accuracy
@@ -368,23 +368,35 @@ export function StrategyDashboard() {
                   {priorityStrategies.map(
                     ({ strategyId, status, accuracy }) => {
                       const details = STRATEGY_DISPLAY_DETAILS[strategyId];
+                      const isOperationEnabled =
+                        enabledOperations[details.opKey];
+
                       return (
                         <div
                           key={strategyId}
-                          className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                          className={`flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${!isOperationEnabled ? "border-dashed border-amber-300" : ""}`}
                         >
                           <div className="flex items-center justify-center p-2">
                             <WaterTank status={status} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">
+                            <p
+                              className={`font-medium text-sm truncate ${!isOperationEnabled ? "text-muted-foreground" : ""}`}
+                            >
                               {details.name}
                             </p>
-                            <p className="text-xs text-muted-foreground">
-                              {status === "untried"
-                                ? "Untried"
-                                : `${Math.round(accuracy)}% accuracy`}
-                            </p>
+                            <div className="flex items-center gap-1 mt-0.5">
+                              <p className="text-xs text-muted-foreground">
+                                {status === "untried"
+                                  ? "Untried"
+                                  : `${Math.round(accuracy)}% accuracy`}
+                              </p>
+                              {!isOperationEnabled && (
+                                <span className="text-xs text-amber-600 dark:text-amber-400">
+                                  • {details.operation}
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <Button
                             size="sm"
@@ -408,8 +420,6 @@ export function StrategyDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {Object.entries(operationGroups).map(
                 ([operation, strategies]) => {
-                  if (strategies.length === 0) return null;
-
                   const summary = getOperationSummary(strategies);
                   const operationName =
                     operation.charAt(0).toUpperCase() + operation.slice(1);
@@ -420,8 +430,16 @@ export function StrategyDashboard() {
                     borderColor,
                   } = getOperationDisplay(operation);
 
+                  const isOperationEnabled =
+                    enabledOperations[
+                      operation as keyof typeof enabledOperations
+                    ];
+
                   return (
-                    <Card key={operation} className={`${borderColor}`}>
+                    <Card
+                      key={operation}
+                      className={`${borderColor} ${!isOperationEnabled ? "opacity-60" : ""}`}
+                    >
                       <CardContent className="p-0">
                         <div
                           className={`flex items-center justify-between p-4 ${bgColor} rounded-t-xl`}
@@ -435,98 +453,155 @@ export function StrategyDashboard() {
                                 {operationName}
                               </h3>
                               <p className="text-sm text-muted-foreground">
-                                {strategies.length} strategies
-                                {summary.totalAttempts > 0 &&
-                                  ` • ${Math.round(summary.overallAccuracy)}% avg`}
+                                {!isOperationEnabled ? (
+                                  "Disabled in settings"
+                                ) : strategies.length === 0 ? (
+                                  "No strategies available"
+                                ) : (
+                                  <>
+                                    {strategies.length} strategies
+                                    {summary.totalAttempts > 0 &&
+                                      ` • ${Math.round(summary.overallAccuracy)}% avg`}
+                                  </>
+                                )}
                               </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-1">
-                            {summary.statusCounts.mastered > 0 && (
-                              <Badge
-                                variant="secondary"
-                                className="bg-green-100 text-green-700 text-xs"
-                              >
-                                {summary.statusCounts.mastered} done
-                              </Badge>
-                            )}
-                            {summary.statusCounts.weak > 0 && (
-                              <Badge
-                                variant="secondary"
-                                className="bg-red-100 text-red-700 text-xs"
-                              >
-                                {summary.statusCounts.weak} weak
-                              </Badge>
-                            )}
-                            {summary.statusCounts.untried > 0 && (
+                            {!isOperationEnabled ? (
                               <Badge
                                 variant="secondary"
                                 className="bg-gray-100 text-gray-600 text-xs"
                               >
-                                {summary.statusCounts.untried} new
+                                Disabled
                               </Badge>
+                            ) : strategies.length === 0 ? (
+                              <Badge
+                                variant="secondary"
+                                className="bg-gray-100 text-gray-600 text-xs"
+                              >
+                                No strategies
+                              </Badge>
+                            ) : (
+                              <>
+                                {summary.statusCounts.mastered > 0 && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="bg-green-100 text-green-700 text-xs"
+                                  >
+                                    {summary.statusCounts.mastered} done
+                                  </Badge>
+                                )}
+                                {summary.statusCounts.weak > 0 && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="bg-red-100 text-red-700 text-xs"
+                                  >
+                                    {summary.statusCounts.weak} weak
+                                  </Badge>
+                                )}
+                                {summary.statusCounts.untried > 0 && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="bg-gray-100 text-gray-600 text-xs"
+                                  >
+                                    {summary.statusCounts.untried} new
+                                  </Badge>
+                                )}
+                              </>
                             )}
                           </div>
                         </div>
 
-                        <div className="p-4 grid grid-cols-1 gap-2">
-                          {strategies.map((strategyId) => {
-                            const details =
-                              STRATEGY_DISPLAY_DETAILS[strategyId];
-                            const { status, accuracy } =
-                              getStrategyStatus(strategyId);
-                            const metrics = strategyPerformance[strategyId];
+                        <div className="p-4">
+                          {strategies.length === 0 ? (
+                            <div className="text-center py-6">
+                              <p className="text-sm text-muted-foreground">
+                                No strategies available for{" "}
+                                {operationName.toLowerCase()}.
+                              </p>
+                            </div>
+                          ) : (
+                            <>
+                              {!isOperationEnabled && (
+                                <div className="mb-3 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                                  <p className="text-xs text-amber-700 dark:text-amber-300">
+                                    💡 This operation is disabled in settings.
+                                    You can still practice individual
+                                    strategies, but they won&apos;t appear in
+                                    regular sessions.
+                                  </p>
+                                </div>
+                              )}
+                              <div className="grid grid-cols-1 gap-2">
+                                {strategies.map((strategyId) => {
+                                  const details =
+                                    STRATEGY_DISPLAY_DETAILS[strategyId];
+                                  const { status, accuracy } =
+                                    getStrategyStatus(strategyId);
+                                  const metrics =
+                                    strategyPerformance[strategyId];
 
-                            return (
-                              <div
-                                key={strategyId}
-                                className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors group"
-                              >
-                                <div className="flex items-center gap-3 flex-1">
-                                  <div className="flex items-center justify-center p-1.5">
-                                    <WaterTank status={status} />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2">
-                                      <p className="font-medium text-sm truncate">
-                                        {details.name}
-                                      </p>
+                                  return (
+                                    <div
+                                      key={strategyId}
+                                      className={`flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors group ${!isOperationEnabled ? "border-dashed border-amber-300" : ""}`}
+                                    >
+                                      <div className="flex items-center gap-3 flex-1">
+                                        <div className="flex items-center justify-center p-1.5">
+                                          <WaterTank status={status} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <div className="flex items-center gap-2">
+                                            <p
+                                              className={`font-medium text-sm truncate ${!isOperationEnabled ? "text-muted-foreground" : ""}`}
+                                            >
+                                              {details.name}
+                                            </p>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-5 w-5 p-0"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setHelpModalStrategyId(
+                                                  strategyId,
+                                                );
+                                              }}
+                                            >
+                                              <HelpCircle className="h-3 w-3 stroke-gray-300" />
+                                            </Button>
+                                          </div>
+                                          <div className="flex items-center gap-2 mt-0.5">
+                                            <span className="text-xs text-muted-foreground">
+                                              {metrics &&
+                                              metrics.totalAttempts > 0
+                                                ? `${Math.round(accuracy)}% (${metrics.totalAttempts} attempts)`
+                                                : "Not tried"}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
                                       <Button
-                                        variant="ghost"
                                         size="sm"
-                                        className="h-5 w-5 p-0"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setHelpModalStrategyId(strategyId);
-                                        }}
+                                        variant={
+                                          status === "weak"
+                                            ? "default"
+                                            : "outline"
+                                        }
+                                        onClick={() =>
+                                          handlePracticeStrategy(strategyId)
+                                        }
+                                        className="ml-2"
                                       >
-                                        <HelpCircle className="h-3 w-3 stroke-gray-300" />
+                                        Practice
                                       </Button>
                                     </div>
-                                    <div className="flex items-center gap-2 mt-0.5">
-                                      <span className="text-xs text-muted-foreground">
-                                        {metrics && metrics.totalAttempts > 0
-                                          ? `${Math.round(accuracy)}% (${metrics.totalAttempts} attempts)`
-                                          : "Not tried"}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                                <Button
-                                  size="sm"
-                                  variant={
-                                    status === "weak" ? "default" : "outline"
-                                  }
-                                  onClick={() =>
-                                    handlePracticeStrategy(strategyId)
-                                  }
-                                  className="ml-2"
-                                >
-                                  Practice
-                                </Button>
+                                  );
+                                })}
                               </div>
-                            );
-                          })}
+                            </>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
