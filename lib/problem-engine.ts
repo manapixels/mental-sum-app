@@ -147,8 +147,9 @@ function generateProblemForStrategy(
     return getRandomInt(min, Math.max(min, max)); // ensure min <= max
   };
 
-  // --- Placeholder Problem Generation Logic (to be expanded) ---
+  // --- Complete Problem Generation Logic for All Strategies ---
   switch (strategyId) {
+    // === ADDITION STRATEGIES ===
     case "AdditionBridgingTo10s":
       type = "addition";
       let num1Bridging = getNum(range, difficulty);
@@ -162,25 +163,132 @@ function generateProblemForStrategy(
       operands = [num1Bridging, getNum(range, difficulty)];
       correctAnswer = operands[0] + operands[1];
       break;
+
     case "AdditionDoubles":
       type = "addition";
       const baseDouble = getNum(range, difficulty);
-      operands = [baseDouble, baseDouble + getRandomInt(1, 2)];
-      if (Math.random() < 0.5 && operands[1] > range.min + 1)
-        operands[1] -= getRandomInt(1, 2) * 2; // sometimes make it N, N-1 or N, N-2
+      operands = [baseDouble, baseDouble + getRandomInt(-2, 2)];
       operands[1] = Math.max(range.min, operands[1]); // ensure it's not too small
+      if (operands[1] === operands[0]) operands[1]++; // avoid exact doubles
       correctAnswer = operands[0] + operands[1];
       break;
-    // TODO: Add cases for ALL other Addition strategies
+
+    case "AdditionBreakingApart":
+      type = "addition";
+      // Generate numbers where one can be easily broken into tens and ones
+      const baseNum = getNum(range, difficulty);
+      let breakableNum = getRandomInt(12, Math.min(range.max, 89)); // ensure it has tens and ones
+      // Make sure tens part is reasonable
+      breakableNum = Math.floor(breakableNum / 10) * 10 + getRandomInt(2, 8);
+      operands = [baseNum, breakableNum];
+      correctAnswer = operands[0] + operands[1];
+      break;
+
+    case "AdditionLeftToRight":
+      type = "addition";
+      // Generate 2-digit numbers that benefit from left-to-right addition
+      const num1Left = getRandomInt(
+        Math.max(range.min, 12),
+        Math.min(range.max, 89),
+      );
+      const num2Left = getRandomInt(
+        Math.max(range.min, 12),
+        Math.min(range.max, 89),
+      );
+      operands = [num1Left, num2Left];
+      correctAnswer = operands[0] + operands[1];
+      break;
+
+    // === SUBTRACTION STRATEGIES ===
+    case "SubtractionBridgingDown":
+      type = "subtraction";
+      // Create problems where subtracting to next 10 is helpful
+      let minuend = getNum(range, difficulty);
+      const subtrahendBridge = getRandomInt(2, 9); // amount that goes past a 10
+      const tensToSubtract = getRandomInt(1, 3) * 10;
+      const totalToSubtract = tensToSubtract + subtrahendBridge;
+      // Ensure positive result
+      while (minuend - totalToSubtract < 0) {
+        minuend = getNum(range, difficulty);
+      }
+      operands = [minuend, totalToSubtract];
+      correctAnswer = operands[0] - operands[1];
+      break;
+
+    case "SubtractionAddingUp":
+      type = "subtraction";
+      // Generate problems where counting up is easier than subtracting down
+      const larger = getNum(range, difficulty);
+      const smaller =
+        larger - getRandomInt(5, Math.min(30, larger - range.min));
+      operands = [larger, smaller];
+      correctAnswer = operands[0] - operands[1];
+      break;
+
+    case "SubtractionCompensation":
+      type = "subtraction";
+      // Create problems where rounding the subtrahend helps
+      let minuendComp = getNum(range, difficulty);
+      const roundBase = getRandomInt(1, 5) * 10;
+      const subtrahendComp = roundBase + getRandomInt(-3, -1); // like 27, 28, 29
+      while (minuendComp - subtrahendComp < 0) {
+        minuendComp = getNum(range, difficulty);
+      }
+      operands = [minuendComp, subtrahendComp];
+      correctAnswer = operands[0] - operands[1];
+      break;
+
+    // === MULTIPLICATION STRATEGIES ===
+    case "MultiplicationDoubling":
+      type = "multiplication";
+      // Generate problems with factors of 2, 4, 8
+      const doublingFactors = [2, 4, 8];
+      const doublingFactor =
+        doublingFactors[Math.floor(Math.random() * doublingFactors.length)];
+      const otherFactor = getNum(range, difficulty);
+      operands = [otherFactor, doublingFactor];
+      correctAnswer = operands[0] * operands[1];
+      break;
+
+    case "MultiplicationBreakingApart":
+      type = "multiplication";
+      // Generate problems where one number can be broken into tens and ones
+      let factorToBreak = getRandomInt(12, Math.min(range.max, 89));
+      // Ensure it has meaningful tens and ones parts
+      factorToBreak = Math.floor(factorToBreak / 10) * 10 + getRandomInt(2, 9);
+      const otherFactorBreak = getRandomInt(Math.max(range.min, 2), 12);
+      operands = [factorToBreak, otherFactorBreak];
+      correctAnswer = operands[0] * operands[1];
+      break;
+
+    case "MultiplicationNearSquares":
+      type = "multiplication";
+      // Generate problems like 19×21, 18×22 that are near squares
+      const baseSquare = getRandomInt(
+        Math.max(10, Math.ceil(Math.sqrt(range.min))),
+        Math.min(Math.floor(Math.sqrt(range.max)), 25),
+      );
+      const offset = getRandomInt(1, 3);
+      operands = [baseSquare - offset, baseSquare + offset];
+      correctAnswer = operands[0] * operands[1];
+      break;
 
     case "MultiplicationTimes5":
       type = "multiplication";
       operands = [getNum(range, difficulty), 5];
       correctAnswer = operands[0] * operands[1];
       break;
-    // TODO: Add cases for ALL other Multiplication strategies
 
-    case "DivisionFactorRecognition": // Example for Division
+    case "MultiplicationTimes9":
+      type = "multiplication";
+      // Generate problems multiplying by 9
+      const factorFor9 = getNum(range, difficulty);
+      operands = [factorFor9, 9];
+      correctAnswer = operands[0] * operands[1];
+      break;
+
+    // === DIVISION STRATEGIES ===
+    case "DivisionFactorRecognition":
       type = "division";
       const factor1 = getRandomInt(
         2,
@@ -206,8 +314,52 @@ function generateProblemForStrategy(
       correctAnswer = operands[0] / operands[1];
       break;
 
+    case "DivisionMultiplicationInverse":
+      type = "division";
+      // Create division problems that are easier to think of as "what times X equals Y"
+      const divisorInverse = getRandomInt(
+        2,
+        difficulty === "beginner" ? 9 : difficulty === "intermediate" ? 12 : 15,
+      );
+      const quotientInverse = getRandomInt(
+        2,
+        difficulty === "beginner"
+          ? 12
+          : difficulty === "intermediate"
+            ? 20
+            : 30,
+      );
+      operands = [divisorInverse * quotientInverse, divisorInverse];
+      correctAnswer = quotientInverse;
+      break;
+
+    case "DivisionEstimationAdjustment":
+      type = "division";
+      // Create problems that benefit from estimation and adjustment
+      const divisorEst = getRandomInt(
+        6,
+        difficulty === "beginner"
+          ? 15
+          : difficulty === "intermediate"
+            ? 25
+            : 40,
+      );
+      const quotientEst = getRandomInt(
+        3,
+        difficulty === "beginner"
+          ? 12
+          : difficulty === "intermediate"
+            ? 18
+            : 25,
+      );
+      // Add a small remainder to make estimation necessary
+      const remainder = getRandomInt(1, divisorEst - 1);
+      operands = [divisorEst * quotientEst + remainder, divisorEst];
+      correctAnswer = Math.floor(operands[0] / operands[1]); // Integer division
+      break;
+
     default:
-      // Fallback for strategies not yet implemented - generate a generic problem of the operation type
+      // Fallback for any unexpected strategies
       console.warn(
         `Problem generation not fully implemented for strategy: ${strategyId}. Using fallback.`,
       );
