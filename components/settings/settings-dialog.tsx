@@ -334,10 +334,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             </div>
           </div>
 
-          <Separator />
+          {/* <Separator /> */}
 
           {/* Training Features */}
-          <div className="space-y-3">
+          {/* <div className="space-y-3">
             <Label className="text-base font-medium">Training Features</Label>
 
             <div className="space-y-3">
@@ -364,7 +364,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 />
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </DialogContent>
     </Dialog>
