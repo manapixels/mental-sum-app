@@ -34,12 +34,8 @@ export default function ReviewPage() {
     <MainLayout>
       <div className="mb-8">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
-          Review Incorrect Answers
+          Review mistakes
         </h1>
-        <p className="text-muted-foreground mt-2">
-          Review problems you got wrong to learn from your mistakes and improve
-          your mental math skills.
-        </p>
       </div>
 
       <IncorrectProblemsList />

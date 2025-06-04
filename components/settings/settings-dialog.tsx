@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/lib/contexts/user-context";
 import { UserPreferences } from "@/lib/types";
-import { Plus, Minus, Calculator, Clock } from "lucide-react";
+import { Plus, Minus, Calculator, Clock, X, Divide } from "lucide-react";
 import { useSoundEffects } from "@/lib/hooks/use-audio";
 import { useHaptic } from "@/lib/hooks/use-haptic";
 import { toast } from "sonner";
@@ -206,9 +206,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
               <div className="flex items-center justify-between space-x-2 p-3 rounded-lg border">
                 <div className="flex items-center space-x-2">
-                  <span className="h-4 w-4 text-blue-600 font-bold text-xs flex items-center justify-center">
-                    ×
-                  </span>
+                  <X className="h-4 w-4 text-blue-600" />
                   <Label
                     htmlFor="multiplication"
                     className="text-sm font-medium"
@@ -231,9 +229,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
               <div className="flex items-center justify-between space-x-2 p-3 rounded-lg border">
                 <div className="flex items-center space-x-2">
-                  <span className="h-4 w-4 text-purple-600 font-bold text-xs flex items-center justify-center">
-                    ÷
-                  </span>
+                  <Divide className="h-4 w-4 text-purple-600" />
                   <Label htmlFor="division" className="text-sm font-medium">
                     Division
                   </Label>

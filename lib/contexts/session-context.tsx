@@ -150,7 +150,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         setCurrentSession(null);
       }
     },
-    [currentUser, focusedStrategyId],
+    [currentUser, focusedStrategyId, problemIndex],
   );
 
   const updateProblemInSession = useCallback(

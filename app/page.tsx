@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { UserStrategyProgressList } from "@/components/user/user-strategy-progress-list";
+import { StrategyDashboard } from "@/components/user/strategy-dashboard";
 import { UserOverallStats } from "@/components/user/user-overall-stats";
 import { useUser } from "@/lib/contexts/user-context";
 import { MainLayout } from "@/components/layout/main-layout";
@@ -51,7 +51,7 @@ export default function HomePage() {
           </div>
           <PracticeInitializer />
           <Separator />
-          <UserStrategyProgressList />
+          <StrategyDashboard />
         </div>
       </div>
     </MainLayout>

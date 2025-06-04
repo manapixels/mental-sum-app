@@ -17,7 +17,7 @@ export function UserOverallStats({ statistics }: UserOverallStatsProps) {
         </h2>
         <div className="flex flex-col gap-4">
           <div className="flex flex-row gap-4 items-end">
-            <span className="text-8xl font-bold text-gray-800">
+            <span className="text-6xl font-bold text-gray-800">
               {totalProblems.toLocaleString() || 0}
             </span>
             <span className="text-sm text-muted-foreground">

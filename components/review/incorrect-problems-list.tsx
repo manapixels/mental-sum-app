@@ -100,7 +100,7 @@ export function IncorrectProblemsList() {
 
   if (!currentUser || !currentUser.statistics.problemHistory) {
     return (
-      <div className="text-center py-10">
+      <div className="py-10">
         <p className="text-muted-foreground">
           Loading review data or no user selected...
         </p>
@@ -115,18 +115,12 @@ export function IncorrectProblemsList() {
 
   if (allIncorrectProblems.length === 0) {
     return (
-      <div className="text-center py-10">
+      <div className="py-10">
         <p className="text-xl font-semibold">All Clear!</p>
         <p className="text-muted-foreground">
           You have no incorrect answers to review right now. Keep up the great
           work!
         </p>
-        <div className="mt-4 p-4 bg-muted/50 rounded-lg text-sm">
-          <p className="text-muted-foreground">
-            Debug info: Total problems in history:{" "}
-            {currentUser.statistics.problemHistory?.length || 0}
-          </p>
-        </div>
       </div>
     );
   }
@@ -192,7 +186,7 @@ export function IncorrectProblemsList() {
       </div>
 
       {processedProblems.length === 0 && filterByStrategy !== "all" && (
-        <div className="text-center py-10">
+        <div className="py-10">
           <p className="text-muted-foreground">
             No incorrect answers found for the selected strategy:{" "}
             {STRATEGY_DISPLAY_DETAILS[filterByStrategy]?.name ||

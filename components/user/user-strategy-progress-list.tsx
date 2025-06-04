@@ -6,7 +6,7 @@ import { useSession } from "@/lib/contexts/session-context";
 import { useRouter } from "next/navigation";
 import { StrategyProgressCard } from "./strategy-progress-card";
 import { ALL_STRATEGY_IDS, StrategyId, UserPreferences } from "@/lib/types";
-import { StrategyHelpModal } from "@/components/help/StrategyHelpModal";
+import { StrategyHelpModal } from "@/components/help/strategy-help-modal";
 
 // Helper to get a user-friendly display name and operation for each strategy
 // This could be expanded or moved to a utility file
