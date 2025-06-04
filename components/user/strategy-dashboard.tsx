@@ -34,7 +34,7 @@ import { Separator } from "../ui/separator";
 
 export function StrategyDashboard() {
   const { currentUser } = useUser();
-  const { setFocusedStrategy } = useSession();
+  const { setFocusedStrategy, clearSession } = useSession();
   const router = useRouter();
   const [helpModalStrategyId, setHelpModalStrategyId] =
     useState<StrategyId | null>(null);
@@ -129,6 +129,8 @@ export function StrategyDashboard() {
   }
 
   const handlePracticeStrategy = (strategyId: StrategyId) => {
+    // Clear any existing session state first to prevent conflicts
+    clearSession();
     setFocusedStrategy(strategyId);
     router.push("/session");
   };

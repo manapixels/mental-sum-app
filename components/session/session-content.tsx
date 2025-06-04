@@ -3,41 +3,30 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { SessionInterface } from "./session-interface";
-import { useSession } from "@/lib/contexts/session-context";
 import { useUser } from "@/lib/contexts/user-context";
 
 export function SessionContent() {
   const router = useRouter();
   const { currentUser, isLoading: userLoading } = useUser();
-  const { currentSession, isActive } = useSession();
 
   useEffect(() => {
-    // Don't redirect while still loading user data
-    if (userLoading) return;
-
-    // Redirect if no user
-    if (!currentUser) {
+    // Only redirect if no user after loading is complete
+    if (!userLoading && !currentUser) {
       router.replace("/");
       return;
     }
+  }, [currentUser, userLoading, router]);
 
-    // Redirect if no active session or session is completed
-    if (!currentSession || !isActive || currentSession.completed) {
-      router.replace("/");
-      return;
-    }
-  }, [currentUser, userLoading, currentSession, isActive, router]);
-
-  // Show nothing while loading or redirecting
-  if (
-    userLoading ||
-    !currentUser ||
-    !currentSession ||
-    !isActive ||
-    currentSession.completed
-  ) {
+  // Show nothing while loading user data
+  if (userLoading) {
     return null;
   }
 
+  // Redirect if no user (after loading is complete)
+  if (!currentUser) {
+    return null; // Will redirect via useEffect
+  }
+
+  // Let SessionInterface handle session logic (including auto-starting)
   return <SessionInterface />;
 }

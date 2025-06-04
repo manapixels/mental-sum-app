@@ -14,15 +14,20 @@ import { Badge } from "@/components/ui/badge";
 import { Play, Settings } from "lucide-react";
 import { SettingsDialog } from "@/components/settings/settings-dialog";
 import { useUser } from "@/lib/contexts/user-context";
+import { useSession } from "@/lib/contexts/session-context";
 import { useRouter } from "next/navigation";
 
 export function PracticeInitializer() {
   const { currentUser, isLoading } = useUser();
+  const { startSession, clearSession } = useSession();
   const [showSettings, setShowSettings] = useState(false);
   const router = useRouter();
 
   const handleStartSession = () => {
-    // Navigate to session page
+    // Clear any existing session state first to prevent conflicts
+    clearSession();
+    // Start the session first, then navigate
+    startSession();
     router.push("/session");
   };
 

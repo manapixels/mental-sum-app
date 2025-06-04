@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@/lib/contexts/user-context";
+import { useSession } from "@/lib/contexts/session-context";
 import { Session } from "@/lib/types";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
@@ -27,6 +28,7 @@ export function SessionResultsContent() {
   const params = useParams();
   const router = useRouter();
   const { currentUser, getSessionById } = useUser();
+  const { clearSession } = useSession();
   const [session, setSession] = useState<Session | null | undefined>(undefined);
 
   const sessionId = typeof params.id === "string" ? params.id : undefined;
@@ -65,10 +67,12 @@ export function SessionResultsContent() {
   }
 
   const handleBackToHome = () => {
+    clearSession();
     router.push("/");
   };
 
   const handleNewSession = () => {
+    clearSession();
     router.push("/session");
   };
 

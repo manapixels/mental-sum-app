@@ -97,6 +97,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
             ? null
             : focusedStrategyId;
 
+      // Clear any existing session state first
       setCurrentSession(null);
       setIsActive(false);
       setIsPaused(false);

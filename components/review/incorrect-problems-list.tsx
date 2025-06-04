@@ -20,7 +20,7 @@ type SortOption = "date-desc" | "date-asc" | "strategy-name";
 
 export function IncorrectProblemsList() {
   const { currentUser } = useUser();
-  const { setFocusedStrategy } = useSession();
+  const { setFocusedStrategy, clearSession } = useSession();
   const router = useRouter();
 
   const [sortBy, setSortBy] = useState<SortOption>("date-desc");
@@ -109,6 +109,7 @@ export function IncorrectProblemsList() {
   }
 
   const handlePracticeStrategy = (strategyId: StrategyId) => {
+    clearSession();
     setFocusedStrategy(strategyId);
     router.push("/session");
   };

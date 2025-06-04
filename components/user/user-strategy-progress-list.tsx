@@ -97,7 +97,7 @@ export const STRATEGY_DISPLAY_DETAILS: Record<
 
 export function UserStrategyProgressList() {
   const { currentUser } = useUser();
-  const { setFocusedStrategy } = useSession();
+  const { setFocusedStrategy, clearSession } = useSession();
   const router = useRouter();
   const [helpModalStrategyId, setHelpModalStrategyId] =
     useState<StrategyId | null>(null);
@@ -120,6 +120,7 @@ export function UserStrategyProgressList() {
   const { enabledOperations } = currentUser.preferences;
 
   const handlePracticeStrategy = (strategyId: StrategyId) => {
+    clearSession();
     setFocusedStrategy(strategyId);
     router.push("/session");
   };
