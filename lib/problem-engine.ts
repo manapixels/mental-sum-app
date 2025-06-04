@@ -111,10 +111,6 @@ function generateProblemForStrategy(
   difficulty: Problem["difficulty"],
   numberRanges: UserPreferences["numberRanges"],
 ): Problem | null {
-  console.log(
-    `ProblemEngine: Generating problem for strategy: ${strategyId}, difficulty: ${difficulty}`,
-  );
-
   let operands: [number, number] = [0, 0];
   let correctAnswer: number = 0;
   let type: Problem["type"] = "addition"; // Default
