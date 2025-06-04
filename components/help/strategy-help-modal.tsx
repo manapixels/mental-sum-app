@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { StrategyId } from "@/lib/types";
 import { STRATEGY_DISPLAY_DETAILS } from "@/components/user/user-strategy-progress-list";
 import {
@@ -12,6 +12,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { InteractiveTutorial } from "@/components/help/interactive-tutorial";
+import { Play, BookOpen } from "lucide-react";
 
 interface StrategyHelpModalProps {
   strategyId: StrategyId | null;
@@ -555,6 +557,8 @@ export function StrategyHelpModal({
   isOpen,
   onClose,
 }: StrategyHelpModalProps) {
+  const [showInteractive, setShowInteractive] = useState(false);
+
   if (!isOpen || !strategyId) {
     return null;
   }
@@ -565,6 +569,16 @@ export function StrategyHelpModal({
   const strategyName =
     details?.name || strategyId.replace(/([A-Z])/g, " $1").trim();
   const operationName = details?.operation || "Operation";
+
+  // Handle opening interactive tutorial
+  const handleOpenInteractive = () => {
+    setShowInteractive(true);
+  };
+
+  // Handle closing interactive tutorial
+  const handleCloseInteractive = () => {
+    setShowInteractive(false);
+  };
 
   if (!content) {
     return (
@@ -589,96 +603,122 @@ export function StrategyHelpModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center justify-between">
+    <>
+      <Dialog open={isOpen && !showInteractive} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="text-xl text-left">
+                  {strategyName}
+                </DialogTitle>
+                <DialogDescription className="text-base text-left">
+                  {operationName} Strategy
+                </DialogDescription>
+              </div>
+              <Badge className={difficultyColors[content.difficulty]}>
+                {content.difficulty}
+              </Badge>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Description */}
             <div>
-              <DialogTitle className="text-xl text-left">
-                {strategyName}
-              </DialogTitle>
-              <DialogDescription className="text-base text-left">
-                {operationName} Strategy
-              </DialogDescription>
+              <h4 className="font-semibold mb-2">What is this strategy?</h4>
+              <p className="text-sm text-muted-foreground">
+                {content.description}
+              </p>
             </div>
-            <Badge className={difficultyColors[content.difficulty]}>
-              {content.difficulty}
-            </Badge>
-          </div>
-        </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Description */}
-          <div>
-            <h4 className="font-semibold mb-2">What is this strategy?</h4>
-            <p className="text-sm text-muted-foreground">
-              {content.description}
-            </p>
-          </div>
+            <Separator />
 
-          <Separator />
-
-          {/* Method */}
-          <div>
-            <h4 className="font-semibold mb-2">How to use it:</h4>
-            <ol className="text-sm text-muted-foreground space-y-1">
-              {content.method.map((step, index) => (
-                <li key={index} className="flex">
-                  <span className="font-medium mr-2 text-primary">
-                    {index + 1}.
-                  </span>
-                  <span>{step}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-
-          <Separator />
-
-          {/* Examples */}
-          <div>
-            <h4 className="font-semibold mb-3">Examples:</h4>
-            <div className="space-y-4">
-              {content.examples.map((example, index) => (
-                <div key={index} className="border rounded-lg p-3 bg-muted/30">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-mono text-lg font-medium">
-                      {example.problem}
+            {/* Method */}
+            <div>
+              <h4 className="font-semibold mb-2">How to use it:</h4>
+              <ol className="text-sm text-muted-foreground space-y-1">
+                {content.method.map((step, index) => (
+                  <li key={index} className="flex">
+                    <span className="font-medium mr-2 text-primary">
+                      {index + 1}.
                     </span>
-                    <span className="font-mono text-lg font-bold text-primary">
-                      = {example.solution}
-                    </span>
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <Separator />
+
+            {/* Examples */}
+            <div>
+              <h4 className="font-semibold mb-3">Examples:</h4>
+              <div className="space-y-4">
+                {content.examples.map((example, index) => (
+                  <div
+                    key={index}
+                    className="border rounded-lg p-3 bg-muted/30"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-mono text-lg font-medium">
+                        {example.problem}
+                      </span>
+                      <span className="font-mono text-lg font-bold text-primary">
+                        = {example.solution}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {example.explanation}
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {example.explanation}
-                  </p>
-                </div>
-              ))}
+                ))}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Tips */}
+            <div>
+              <h4 className="font-semibold mb-2">💡 Tips for success:</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                {content.tips.map((tip, index) => (
+                  <li key={index} className="flex">
+                    <span className="mr-2">•</span>
+                    <span>{tip}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
 
-          <Separator />
+          <DialogFooter className="mt-6 flex flex-col sm:flex-row gap-2 sticky -bottom-6 bg-background/95 backdrop-blur-sm border-t py-4 -mx-6 px-6 -mb-6">
+            <Button
+              onClick={handleOpenInteractive}
+              className="flex-1 sm:flex-none"
+              variant="default"
+            >
+              <Play className="mr-2 h-4 w-4" />
+              Try Interactive Example
+            </Button>
+            <Button
+              onClick={onClose}
+              variant="outline"
+              className="flex-1 sm:flex-none"
+            >
+              <BookOpen className="mr-2 h-4 w-4" />
+              Got it! Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-          {/* Tips */}
-          <div>
-            <h4 className="font-semibold mb-2">💡 Tips for success:</h4>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              {content.tips.map((tip, index) => (
-                <li key={index} className="flex">
-                  <span className="mr-2">•</span>
-                  <span>{tip}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <DialogFooter className="mt-6">
-          <Button onClick={onClose} className="w-full sm:w-auto">
-            Got it! Close
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      {/* Interactive Tutorial */}
+      <InteractiveTutorial
+        strategyId={strategyId}
+        isOpen={showInteractive}
+        onClose={handleCloseInteractive}
+        onBack={() => setShowInteractive(false)}
+      />
+    </>
   );
 }

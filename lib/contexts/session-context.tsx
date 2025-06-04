@@ -151,7 +151,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         setCurrentSession(null);
       }
     },
-    [currentUser, focusedStrategyId, problemIndex],
+    [currentUser, focusedStrategyId],
   );
 
   const updateProblemInSession = useCallback(
@@ -330,7 +330,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
     setIsActive(false);
     setIsPaused(false);
-  }, [currentSession, currentUser, updateUser]);
+  }, [currentSession, currentUser, updateUser, problemIndex]);
 
   const nextProblem = useCallback(() => {
     if (!currentSession || !isActive || isPaused) return;
