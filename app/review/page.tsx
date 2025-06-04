@@ -1,10 +1,17 @@
 "use client";
 
+import type { Metadata } from "next";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/lib/contexts/user-context";
 import { MainLayout } from "@/components/layout/main-layout";
 import { IncorrectProblemsList } from "@/components/review/incorrect-problems-list";
+
+export const metadata: Metadata = {
+  title: "Review Mistakes - ne.ko",
+  description:
+    "Review and learn from your incorrect answers to improve your mental math skills.",
+};
 
 export default function ReviewPage() {
   const router = useRouter();

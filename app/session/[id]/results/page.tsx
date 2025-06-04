@@ -1,5 +1,6 @@
 "use client";
 
+import type { Metadata } from "next";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@/lib/contexts/user-context";
@@ -9,6 +10,11 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { SessionResults } from "@/components/session/session-results";
 import { MainLayout } from "@/components/layout/main-layout";
+
+export const metadata: Metadata = {
+  title: "Session Results - ne.ko",
+  description: "View your practice session results and performance analysis.",
+};
 
 export default function SessionResultsPage() {
   const params = useParams();

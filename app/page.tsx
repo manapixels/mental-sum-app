@@ -8,6 +8,12 @@ import { MainLayout } from "@/components/layout/main-layout";
 import { PracticeInitializer } from "@/components/home/practice-initializer";
 import { WelcomeScreen } from "@/components/user/user-selector";
 import { Separator } from "@/components/ui/separator";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Dashboard - ne.ko",
+  description: "View your mental math progress and start practice sessions.",
+};
 
 export default function HomePage() {
   const { currentUser, users, isLoading } = useUser();
