@@ -78,7 +78,7 @@ export function PracticeInitializer() {
               <Badge
                 key={op}
                 variant="outline"
-                className={`text-xs sm:text-sm ${op === "Addition" ? "border-green-600" : op === "Subtraction" ? "border-red-600" : op === "Multiplication" ? "border-blue-600" : "border-purple-600"}`}
+                className={`text-sm bg-white ${op === "Addition" ? "border-green-600" : op === "Subtraction" ? "border-red-600" : op === "Multiplication" ? "border-blue-600" : "border-purple-600"}`}
               >
                 {op}
               </Badge>

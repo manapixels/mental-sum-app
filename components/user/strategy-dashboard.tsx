@@ -30,7 +30,69 @@ import {
 import { ALL_STRATEGY_IDS, StrategyId } from "@/lib/types";
 import { STRATEGY_DISPLAY_DETAILS } from "./user-strategy-progress-list";
 import { StrategyHelpModal } from "@/components/help/strategy-help-modal";
-import { Separator } from "../ui/separator";
+import { Separator } from "@/components/ui/separator";
+
+// Water Tank Component
+interface WaterTankProps {
+  status: "untried" | "weak" | "good" | "mastered";
+  className?: string;
+}
+
+function WaterTank({ status, className = "" }: WaterTankProps) {
+  const getWaterConfig = () => {
+    switch (status) {
+      case "untried":
+        return {
+          fillPercentage: 0,
+          waterColor: "transparent",
+          bgColor: "bg-gray-100",
+        };
+      case "weak":
+        return {
+          fillPercentage: 30,
+          waterColor: "bg-red-400",
+          bgColor: "bg-gray-100",
+        };
+      case "good":
+        return {
+          fillPercentage: 70,
+          waterColor: "bg-amber-300",
+          bgColor: "bg-gray-100",
+        };
+      case "mastered":
+        return {
+          fillPercentage: 100,
+          waterColor: "bg-emerald-500",
+          bgColor: "bg-gray-100",
+        };
+      default:
+        return {
+          fillPercentage: 0,
+          waterColor: "transparent",
+          bgColor: "bg-gray-100",
+        };
+    }
+  };
+
+  const { fillPercentage, waterColor, bgColor } = getWaterConfig();
+
+  return (
+    <div className={`relative w-6 h-6 ${className}`}>
+      {/* Square container */}
+      <div
+        className={`w-full h-full ${bgColor} rounded-sm relative overflow-hidden`}
+      >
+        {/* Fill */}
+        {fillPercentage > 0 && (
+          <div
+            className={`absolute bottom-0 left-0 right-0 ${waterColor} transition-all duration-300`}
+            style={{ height: `${fillPercentage}%` }}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
 
 export function StrategyDashboard() {
   const { currentUser } = useUser();
@@ -73,7 +135,7 @@ export function StrategyDashboard() {
     const metrics = strategyPerformance[strategyId];
     if (!metrics || metrics.totalAttempts === 0) {
       return {
-        status: "untried",
+        status: "untried" as const,
         accuracy: 0,
         icon: Circle,
         color: "bg-gray-100 text-gray-600",
@@ -84,21 +146,21 @@ export function StrategyDashboard() {
 
     if (accuracy >= 90 && metrics.totalAttempts >= 5) {
       return {
-        status: "mastered",
+        status: "mastered" as const,
         accuracy,
         icon: CheckCircle2,
         color: "bg-green-100 text-green-700",
       };
     } else if (accuracy >= 70) {
       return {
-        status: "good",
+        status: "good" as const,
         accuracy,
         icon: TrendingUp,
         color: "bg-blue-100 text-blue-700",
       };
     } else {
       return {
-        status: "weak",
+        status: "weak" as const,
         accuracy,
         icon: AlertTriangle,
         color: "bg-red-100 text-red-700",
@@ -222,8 +284,8 @@ export function StrategyDashboard() {
                 <div className="space-y-4">
                   <div className="grid gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded bg-gray-100">
-                        <Circle className="h-4 w-4 text-gray-600" />
+                      <div className="p-2 rounded">
+                        <WaterTank status="untried" />
                       </div>
                       <div>
                         <p className="font-medium text-sm">Untried</p>
@@ -234,8 +296,8 @@ export function StrategyDashboard() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded bg-red-100">
-                        <AlertTriangle className="h-4 w-4 text-red-700" />
+                      <div className="p-2 rounded">
+                        <WaterTank status="weak" />
                       </div>
                       <div>
                         <p className="font-medium text-sm">Needs Work</p>
@@ -246,8 +308,8 @@ export function StrategyDashboard() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded bg-blue-100">
-                        <TrendingUp className="h-4 w-4 text-blue-700" />
+                      <div className="p-2 rounded">
+                        <WaterTank status="good" />
                       </div>
                       <div>
                         <p className="font-medium text-sm">Good Progress</p>
@@ -258,8 +320,8 @@ export function StrategyDashboard() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded bg-green-100">
-                        <CheckCircle2 className="h-4 w-4 text-green-700" />
+                      <div className="p-2 rounded">
+                        <WaterTank status="mastered" />
                       </div>
                       <div>
                         <p className="font-medium text-sm">Mastered</p>
@@ -272,8 +334,8 @@ export function StrategyDashboard() {
 
                   <div className="pt-2 border-t">
                     <p className="text-xs text-muted-foreground">
-                      💡 Focus on strategies marked with red (needs work) or
-                      gray (untried) for the best improvement!
+                      💡 Focus on strategies with empty or red tanks for the
+                      best improvement!
                     </p>
                   </div>
                 </div>
@@ -304,15 +366,15 @@ export function StrategyDashboard() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {priorityStrategies.map(
-                    ({ strategyId, status, accuracy, icon: Icon, color }) => {
+                    ({ strategyId, status, accuracy }) => {
                       const details = STRATEGY_DISPLAY_DETAILS[strategyId];
                       return (
                         <div
                           key={strategyId}
                           className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                         >
-                          <div className={`p-2 rounded-full ${color}`}>
-                            <Icon className="h-4 w-4" />
+                          <div className="flex items-center justify-center p-2">
+                            <WaterTank status={status} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm truncate">
@@ -411,12 +473,8 @@ export function StrategyDashboard() {
                           {strategies.map((strategyId) => {
                             const details =
                               STRATEGY_DISPLAY_DETAILS[strategyId];
-                            const {
-                              status,
-                              accuracy,
-                              icon: Icon,
-                              color,
-                            } = getStrategyStatus(strategyId);
+                            const { status, accuracy } =
+                              getStrategyStatus(strategyId);
                             const metrics = strategyPerformance[strategyId];
 
                             return (
@@ -425,8 +483,8 @@ export function StrategyDashboard() {
                                 className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors group"
                               >
                                 <div className="flex items-center gap-3 flex-1">
-                                  <div className={`p-1.5 rounded ${color}`}>
-                                    <Icon className="h-3 w-3" />
+                                  <div className="flex items-center justify-center p-1.5">
+                                    <WaterTank status={status} />
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
