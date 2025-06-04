@@ -21,11 +21,14 @@ interface SessionContextType {
   isPaused: boolean;
   hasTimedOut: boolean;
   startSession: (options?: { focusedStrategyId?: StrategyId | null }) => void;
+  startSameTypeSession: () => void;
+  startGeneralSession: () => void;
   submitAnswer: (answer: number) => void;
   pauseSession: () => void;
   resumeSession: () => void;
   endSession: () => void;
   clearSession: () => void;
+  clearFocusedStrategy: () => void;
   nextProblem: () => void;
   getSessionProgress: () => {
     completed: number;
@@ -35,6 +38,11 @@ interface SessionContextType {
   clearTimeout: () => void;
   focusedStrategyId: StrategyId | null;
   setFocusedStrategy: (strategyId: StrategyId | null) => void;
+  lastSessionType: "general" | "focused" | null;
+  practiceIntent: boolean;
+  setPracticeIntent: (intent: boolean) => void;
+  sessionTypeIntent: "general" | "focused" | null;
+  setSessionTypeIntent: (type: "general" | "focused" | null) => void;
 }
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -51,6 +59,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [focusedStrategyId, setFocusedStrategyId] = useState<StrategyId | null>(
     null,
   );
+  const [lastSessionType, setLastSessionType] = useState<
+    "general" | "focused" | null
+  >(null);
+  const [practiceIntent, setPracticeIntent] = useState(false);
+  const [sessionTypeIntent, setSessionTypeIntent] = useState<
+    "general" | "focused" | null
+  >(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -104,6 +119,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       setHasTimedOut(false);
       setProblemIndex(0);
 
+      // Track session type
+      const sessionType = actualFocusIdForEngine ? "focused" : "general";
+      setLastSessionType(sessionType);
+
       try {
         const problems: Problem[] = [];
         const sessionLength = currentUser.preferences.sessionLength;
@@ -153,6 +172,22 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     },
     [currentUser, focusedStrategyId],
   );
+
+  const startGeneralSession = useCallback(() => {
+    if (!currentUser) return;
+
+    // Explicitly start a general session (no focused strategy)
+    startSession({ focusedStrategyId: null });
+  }, [currentUser, startSession]);
+
+  const startSameTypeSession = useCallback(() => {
+    if (!currentUser) return;
+
+    startSession({
+      focusedStrategyId:
+        lastSessionType === "focused" ? focusedStrategyId : null,
+    });
+  }, [currentUser, startSession, lastSessionType, focusedStrategyId]);
 
   const updateProblemInSession = useCallback(
     (updatedProblem: Problem) => {
@@ -372,6 +407,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setIsActive(false);
     setIsPaused(false);
     setHasTimedOut(false);
+    setPracticeIntent(false);
+    setSessionTypeIntent(null);
+  }, []);
+
+  const clearFocusedStrategy = useCallback(() => {
+    setFocusedStrategyId(null);
   }, []);
 
   useEffect(() => {
@@ -400,16 +441,24 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     isPaused,
     hasTimedOut,
     startSession,
+    startSameTypeSession,
+    startGeneralSession,
     submitAnswer,
     pauseSession,
     resumeSession,
     endSession,
     clearSession,
+    clearFocusedStrategy,
     nextProblem,
     getSessionProgress,
     clearTimeout,
     focusedStrategyId,
     setFocusedStrategy: setFocusedStrategyId,
+    lastSessionType,
+    practiceIntent,
+    setPracticeIntent,
+    sessionTypeIntent,
+    setSessionTypeIntent,
   };
 
   return (

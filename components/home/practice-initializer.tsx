@@ -19,15 +19,18 @@ import { useRouter } from "next/navigation";
 
 export function PracticeInitializer() {
   const { currentUser, isLoading } = useUser();
-  const { startSession, clearSession } = useSession();
+  const { clearSession, setPracticeIntent, setSessionTypeIntent } =
+    useSession();
   const [showSettings, setShowSettings] = useState(false);
   const router = useRouter();
 
   const handleStartSession = () => {
     // Clear any existing session state first to prevent conflicts
     clearSession();
-    // Start the session first, then navigate
-    startSession();
+    // Set practice intent before navigating
+    setPracticeIntent(true);
+    setSessionTypeIntent("general"); // Set intent for general session
+    // Navigate to session page (session will auto-start due to intent)
     router.push("/session");
   };
 

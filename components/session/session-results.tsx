@@ -12,12 +12,17 @@ interface SessionResultsProps {
   session: Session;
   onBackToHome: () => void;
   onNewSession: () => void;
+  onSameTypeSession?: () => void;
+  lastSessionType?: "general" | "focused" | null;
+  focusedStrategyName?: string;
 }
 
 export function SessionResults({
   session,
   onBackToHome,
   onNewSession,
+  onSameTypeSession,
+  lastSessionType,
 }: SessionResultsProps) {
   const completedProblems = session.problems.filter((p) => p.completedAt);
   const correctAnswers = session.totalCorrect;
@@ -199,24 +204,39 @@ export function SessionResults({
       </Card>
 
       {/* Action Buttons */}
-      <div className="flex flex-row gap-3">
-        <Button
-          variant="outline"
-          onClick={onBackToHome}
-          size="lg"
-          className="h-12 sm:h-auto px-6 sm:px-8 text-base"
-        >
-          <Home className="mr-2 h-4 w-4" />
-          Back to Home
-        </Button>
-        <Button
-          onClick={onNewSession}
-          size="lg"
-          className="flex-1 h-12 sm:h-auto px-6 sm:px-8 text-base bg-gray-800"
-        >
-          <RotateCcw className="mr-2 h-4 w-4" />
-          New Session
-        </Button>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-row gap-3">
+          <Button
+            variant="outline"
+            onClick={onBackToHome}
+            size="lg"
+            className="h-12 sm:h-auto px-6 sm:px-8 text-base"
+          >
+            <Home className="mr-2 h-4 w-4" />
+            Back to Home
+          </Button>
+
+          {/* Show different options based on session type */}
+          {lastSessionType === "focused" && onSameTypeSession ? (
+            <Button
+              onClick={onSameTypeSession}
+              size="lg"
+              className="flex-1 h-12 sm:h-auto px-6 sm:px-8 text-base bg-gray-800"
+            >
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Practice again
+            </Button>
+          ) : (
+            <Button
+              onClick={onNewSession}
+              size="lg"
+              className="flex-1 h-12 sm:h-auto px-6 sm:px-8 text-base bg-gray-800"
+            >
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Practice again
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

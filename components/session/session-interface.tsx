@@ -32,11 +32,16 @@ export function SessionInterface() {
     isPaused,
     hasTimedOut,
     startSession,
+    startGeneralSession,
     submitAnswer,
     getSessionProgress,
     nextProblem,
     clearTimeout,
     clearSession,
+    practiceIntent,
+    setPracticeIntent,
+    sessionTypeIntent,
+    setSessionTypeIntent,
   } = useSession();
 
   const [userAnswer, setUserAnswer] = useState("");
@@ -104,17 +109,47 @@ export function SessionInterface() {
       !showCelebration &&
       !sessionJustCompletedRef.current
     ) {
+      if (!practiceIntent) {
+        router.replace("/");
+        return;
+      }
+
       const timeoutId = setTimeout(() => {
         if (!showCelebration && !sessionJustCompletedRef.current) {
           setShowCelebration(false);
           sessionJustCompletedRef.current = false;
-          startSession();
+
+          // Start session based on user intent
+          if (sessionTypeIntent === "general") {
+            startGeneralSession();
+          } else if (sessionTypeIntent === "focused") {
+            startSession(); // Will use existing focusedStrategyId
+          } else {
+            // Fallback - start general session if no specific intent
+            startGeneralSession();
+          }
+
+          // Clear intents after starting session
+          setPracticeIntent(false);
+          setSessionTypeIntent(null);
         }
       }, 100);
 
       return () => window.clearTimeout(timeoutId);
     }
-  }, [currentUser, currentSession, isActive, startSession, showCelebration]);
+  }, [
+    currentUser,
+    currentSession,
+    isActive,
+    startSession,
+    startGeneralSession,
+    showCelebration,
+    practiceIntent,
+    sessionTypeIntent,
+    router,
+    setPracticeIntent,
+    setSessionTypeIntent,
+  ]);
 
   useEffect(() => {
     if (currentSession?.completed && !isActive && currentSession.id) {

@@ -97,7 +97,12 @@ function WaterTank({ status, className = "" }: WaterTankProps) {
 
 export function StrategyDashboard() {
   const { currentUser } = useUser();
-  const { setFocusedStrategy, clearSession } = useSession();
+  const {
+    setFocusedStrategy,
+    clearSession,
+    setPracticeIntent,
+    setSessionTypeIntent,
+  } = useSession();
   const router = useRouter();
   const [helpModalStrategyId, setHelpModalStrategyId] =
     useState<StrategyId | null>(null);
@@ -205,9 +210,10 @@ export function StrategyDashboard() {
   }
 
   const handlePracticeStrategy = (strategyId: StrategyId) => {
-    // Clear any existing session state first to prevent conflicts
     clearSession();
     setFocusedStrategy(strategyId);
+    setPracticeIntent(true);
+    setSessionTypeIntent("focused");
     router.push("/session");
   };
 
@@ -538,7 +544,7 @@ export function StrategyDashboard() {
                             <>
                               {!isOperationEnabled && (
                                 <div className="mb-3 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                                  <p className="text-xs text-amber-700 dark:text-amber-300">
+                                  <p className="text-xs text-amber-700 dark:text-amber-300 break-words">
                                     💡 This operation is disabled in settings.
                                     You can still practice individual
                                     strategies, but they won&apos;t appear in
@@ -560,8 +566,8 @@ export function StrategyDashboard() {
                                       key={strategyId}
                                       className={`flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors group ${!isOperationEnabled ? "border-dashed border-amber-300" : ""}`}
                                     >
-                                      <div className="flex items-center gap-3 flex-1">
-                                        <div className="flex items-center justify-center p-1.5">
+                                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                                        <div className="flex items-center justify-center p-1.5 flex-shrink-0">
                                           <WaterTank status={status} />
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -574,7 +580,7 @@ export function StrategyDashboard() {
                                             <Button
                                               variant="ghost"
                                               size="sm"
-                                              className="h-5 w-5 p-0"
+                                              className="h-5 w-5 p-0 flex-shrink-0"
                                               onClick={(e) => {
                                                 e.stopPropagation();
                                                 setHelpModalStrategyId(
@@ -586,7 +592,7 @@ export function StrategyDashboard() {
                                             </Button>
                                           </div>
                                           <div className="flex items-center gap-2 mt-0.5">
-                                            <span className="text-xs text-muted-foreground">
+                                            <span className="text-xs text-muted-foreground break-words">
                                               {metrics &&
                                               metrics.totalAttempts > 0
                                                 ? `${Math.round(accuracy)}% (${metrics.totalAttempts} attempts)`
@@ -605,7 +611,7 @@ export function StrategyDashboard() {
                                         onClick={() =>
                                           handlePracticeStrategy(strategyId)
                                         }
-                                        className="ml-2"
+                                        className="ml-2 flex-shrink-0"
                                       >
                                         Practice
                                       </Button>
