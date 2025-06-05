@@ -181,7 +181,7 @@ export function WelcomeScreen() {
       <div className="max-w-md w-full space-y-6 text-center">
         <div className="space-y-2">
           <span className="text-xl font-medium mr-2">welcome to</span>
-          <span className="text-5xl font-bold mb-6">ne.ko</span>
+          <span className="text-5xl font-bold mb-6">neko+</span>
           <Image
             src="/neko-hill.jpg"
             alt="Neko Hill"

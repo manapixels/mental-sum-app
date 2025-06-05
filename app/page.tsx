@@ -6,7 +6,7 @@ import { PracticeSection } from "@/components/home/practice-section";
 import { StrategySection } from "@/components/home/strategy-section";
 
 export const metadata: Metadata = {
-  title: "Dashboard - ne.ko",
+  title: "Dashboard - neko+",
   description: "View your mental math progress and start practice sessions.",
 };
 

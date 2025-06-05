@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ne.ko - Mental Math Training",
+  title: "neko+ - Mental Math Training",
   description:
     "Improve your mental calculation speed and accuracy through targeted practice sessions.",
 };
